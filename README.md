@@ -65,5 +65,6 @@ provides deterministic behavior in the current Next.js 16 toolchain.
 - Do not imply that rewind reverses remote-server effects.
 - Keep the homepage aligned with the active `brawsr.io` design principles:
   Inter Tight, white canvas, electric-blue state signals, precise hairlines,
-  and the `brawsr.` wordmark. Do not invent a standalone mark.
+  and canonical assets from `brawsr/brawsr-assets`. Do not redraw or approximate the
+  wordmark or favicon.
 - Review generated API and SDK examples against released consumers before publishing them.
