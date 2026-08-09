@@ -1,0 +1,48 @@
+{
+  "name": "@brawsr/docs",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "22.23.2"
+  },
+  "packageManager": "npm@11.8.0",
+  "scripts": {
+    "build": "npm run content:check && next build --webpack && npm run output:check",
+    "content:check": "node scripts/verify-developer-docs.mjs && npm run content:generate && git diff --exit-code -- content/docs/api-reference/operations content/docs/guides",
+    "content:generate": "node scripts/sync-release-guides.mjs && node scripts/generate-openapi.mjs",
+    "dev": "next dev",
+    "lint": "eslint .",
+    "output:check": "node scripts/verify-static-output.mjs",
+    "start": "serve out",
+    "test": "npm run content:check && npm run types:check && npm run lint && npm run build",
+    "types:check": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/source-sans-3": "5.3.0",
+    "@fontsource-variable/spline-sans": "5.3.0",
+    "@fontsource/commit-mono": "5.3.0",
+    "cnfast": "^0.1.0",
+    "fumadocs-core": "16.14.2",
+    "fumadocs-mdx": "15.2.2",
+    "fumadocs-openapi": "11.2.3",
+    "fumadocs-ui": "npm:@fumadocs/base-ui@16.14.2",
+    "lucide-react": "^1.28.0",
+    "next": "16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "shiki": "4.4.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "16.3.0",
+    "postcss": "^8.5.25",
+    "serve": "^14.2.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
+  }
+}

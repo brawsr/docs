@@ -1,0 +1,31 @@
+---
+title: Fork a checkpoint into ordered browser sessions
+full: true
+_openapi:
+  preload:
+    - ./vendor/developer-docs/v0.6.0/source/openapi/v1.json
+  method: POST
+  webhook: false
+  toc: []
+  structuredData:
+    headings: []
+    contents:
+      - content: Creates one to ten independent browser sessions from exactly one
+          checkpoint selector. A completed response contains the entire ordered
+          child set; an accepted response contains only the durable operation
+          and never exposes partial children.
+---
+
+{/* Generated from developer-docs v0.6.0. Do not edit by hand. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="./vendor/developer-docs/v0.6.0/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/fork","method":"post"}]} showDescription />
+    </>
+  );
+}

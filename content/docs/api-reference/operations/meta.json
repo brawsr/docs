@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "list-sessions",
+    "create-session",
+    "get-session",
+    "update-session",
+    "close-session",
+    "connect-cdp",
+    "list-checkpoints",
+    "create-checkpoint",
+    "list-session-ancestry",
+    "list-session-activity",
+    "get-session-lineage",
+    "rewind-session",
+    "fork-session",
+    "get-checkpoint",
+    "delete-checkpoint",
+    "get-operation"
+  ]
+}

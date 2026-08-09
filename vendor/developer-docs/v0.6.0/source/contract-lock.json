@@ -1,0 +1,6 @@
+{
+  "schema_version": "brawsr-public-contract-lock-v1",
+  "contract_version": "0.6.0",
+  "openapi_path": "openapi/v1.json",
+  "openapi_sha256": "416412b7c356040e8d1d8ce4c2a72504773b609a647b323532122803d609b2b3"
+}

@@ -1,0 +1,30 @@
+---
+title: Open the authenticated CDP WebSocket
+full: true
+_openapi:
+  preload:
+    - ./vendor/developer-docs/v0.6.0/source/openapi/v1.json
+  method: GET
+  webhook: false
+  toc: []
+  structuredData:
+    headings: []
+    contents:
+      - content: Upgrade this request to WebSocket with the same bearer credential.
+          After rewind, reconnect to this same URL and discard every object
+          derived from the prior connection.
+---
+
+{/* Generated from developer-docs v0.6.0. Do not edit by hand. */}
+
+export default function Layout(props) {
+  const { APIPage, OpenAPIPage } = props.components ?? {};
+  // "APIPage" is the old name from v10, this allows both for backward compatibility
+  const Comp = OpenAPIPage ?? APIPage;
+  return (
+    <>
+      {props.children}
+      <Comp document="./vendor/developer-docs/v0.6.0/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/cdp","method":"get"}]} showDescription />
+    </>
+  );
+}

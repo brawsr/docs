@@ -1,0 +1,227 @@
+# brawsr API and SDK guide
+
+This guide covers sessions, checkpoints, rewind, fork, operations, and CDP
+reconnection. The complete wire schema is
+[`openapi/v1.json`](openapi/v1.json).
+
+The production API base URL is `https://api.brawsr.io`.
+
+## Authentication
+
+Send the project API key on every REST and WebSocket request:
+
+```http
+Authorization: Bearer brawsr_...
+```
+
+Resource existence is project-masked: a missing, deleted, or foreign resource
+uses the same not-found response. Never put an API key in a URL.
+
+## Recommended SDK flow
+
+The TypeScript and Python SDKs expose one high-level call per mutation. A
+checkpoint or rewind may complete immediately or asynchronously; the SDK hides
+that transport detail and returns only the terminal result.
+
+```ts
+import { BrawsrClient } from "@brawsr/sdk";
+import { chromium } from "playwright-core";
+
+const brawsr = new BrawsrClient(); // reads BRAWSR_API_KEY
+const session = await brawsr.createSession();
+const checkpoint = await brawsr.createCheckpoint(session.id, {
+  label: "before-submit",
+});
+
+// Mutate or attempt an action.
+const restored = await brawsr.rewind(session.id, checkpoint);
+
+const connection = brawsr.connectCDP(restored);
+const browser = await chromium.connectOverCDP(connection.endpointUrl, {
+  headers: connection.headers,
+});
+const context = browser.contexts()[0];
+const pages = context.pages();
+```
+
+```python
+from brawsr import BrawsrClient
+from playwright.sync_api import sync_playwright
+
+with BrawsrClient() as brawsr, sync_playwright() as playwright:
+    session = brawsr.create_session()
+    checkpoint = brawsr.create_checkpoint(session.id, label="before-submit")
+
+    # Mutate or attempt an action.
+    restored = brawsr.rewind(session.id, checkpoint)
+
+    connection = brawsr.connect_cdp(restored)
+    browser = playwright.chromium.connect_over_cdp(
+        connection.endpoint_url,
+        headers=connection.headers,
+    )
+    context = browser.contexts[0]
+    pages = context.pages
+```
+
+The old CDP socket and every `Browser`, `Page`, target, element, execution
+context, request, and remote-object handle derived from it are stale after
+rewind. Reconnect and rediscover contexts/pages; do not cache those objects
+across rewind.
+
+## Session workspace
+
+Sessions accept an optional `display_label` at creation. You can change or
+clear it later with a strict `PATCH /v1/sessions/{session_id}` body:
+
+```json
+{"display_label":"checkout retry"}
+```
+
+The runtime session reads are deliberately small and project-scoped by the API
+key:
+
+- `GET /v1/sessions` lists sessions newest first, with optional exact `status`,
+  `session_id`, and `display_label` filters, case-insensitive display-label
+  substring `search`, plus inclusive `created_from` and exclusive
+  `created_before` RFC 3339 creation-time bounds;
+- `GET /v1/sessions/{session_id}` returns one session, exact checkpoint and
+  direct-child counts, a descendant count capped at 1,000 with an explicit
+  truncation flag, the active lifecycle operation when one exists, and stable
+  relative URLs for each workspace collection;
+- `GET /v1/sessions/{session_id}/checkpoints` returns capture history,
+  including deletion tombstones;
+- `GET /v1/sessions/{session_id}/ancestry` returns the currently rewindable
+  checkpoint chain;
+- `GET /v1/sessions/{session_id}/activity` returns customer-visible lifecycle
+  and checkpoint/rewind/fork outcomes; and
+- `GET /v1/sessions/{session_id}/lineage` returns the selected session, its
+  optional parent edge, and one page of direct fork children.
+
+Every collection is cursor-paginated with a maximum page size of 100. Cursors
+are opaque and bound to the project, collection, session, filters, and order;
+do not construct or reuse them in another query.
+
+The detail response never embeds collection rows. Follow its `collections`
+references to page checkpoints, ancestry, activity, or lineage independently.
+This keeps the primary workspace read bounded even when a session has a large
+history or fork tree.
+
+`cdp_url` is present on a runtime session response only while that session is
+attachable. Closed and expired sessions remain visible for history and lineage
+but do not retain or expose routing credentials. Lineage is intentionally one
+hop: fetch a child's lineage to expand another level of a nested fork tree.
+
+Capture history and rewindable ancestry answer different questions. Capture
+history is the audit of checkpoints created by that session, including deleted
+or abandoned branches. Ancestry is the current reachable chain to use when
+choosing a rewind target. A successful fork is one activity item with its
+ordered child session IDs; internal retries and orchestration stages are never
+part of this customer view.
+
+Puppeteer uses the same generic handoff:
+
+```ts
+const connection = brawsr.connectCDP(restored);
+const browser = await puppeteer.connect({
+  browserWSEndpoint: connection.endpointUrl,
+  headers: connection.headers,
+});
+const pages = await browser.pages();
+```
+
+Executable stories live in:
+
+- [`brawsr/examples`](https://github.com/brawsr/examples) for Playwright,
+  Puppeteer, Stagehand, raw CDP, speculative/concurrent workflows, and recursive
+  fork;
+- [`brawsr/sdk-typescript`](https://github.com/brawsr/sdk-typescript); and
+- [`brawsr/sdk-python`](https://github.com/brawsr/sdk-python).
+
+## Checkpoint contract
+
+Create checkpoints only at an explicit application safe point between actions.
+The caller asserts that application work is settled; brawsr enforces its
+infrastructure barriers but does not infer application quiescence.
+
+A checkpoint accepts:
+
+- optional case-sensitive `label`, unique among live checkpoints in the session;
+- optional TTL;
+- optional idempotency key.
+
+Persist the returned checkpoint ID for durable workflows. A label is convenient
+for automation but is reusable after its checkpoint is deleted. Rewind accepts
+a checkpoint ID, label, or returned checkpoint/result object in one call.
+
+## Immediate and accepted operations
+
+At the REST layer:
+
+- checkpoint returns `201` when complete or `202` with an operation;
+- rewind returns `200` when complete or `202` with an operation;
+- checkpoint deletion returns `204` when complete;
+- `GET /v1/operations/{id}` returns the durable operation view.
+
+A `202` includes `Location` and bounded `Retry-After`. Poll only that operation
+resource. Do not repeat the mutation while it is pending. The SDK waiter follows
+the operation with bounded exponential backoff and jitter.
+
+Cancelling or timing out a client waiter stops local observation only. It does
+not cancel admitted server work. Retain the operation ID and resume with
+`getOperation`/`waitOperation` or `get_operation`/`wait_operation`.
+
+## Idempotency and transport ambiguity
+
+Checkpoint and rewind use one idempotency key per logical mutation. The SDK
+generates it unless supplied and never includes it in exception text.
+
+The SDK retries at most once only when an injected classifier proves the
+connection failed before response bytes. Other transport failures are
+ambiguous and raise `BrawsrTransportError`; use its programmatic recovery key
+to retry the exact request or reconcile the operation. Application errors,
+timeouts after a response, and `409`, `422`, `429`, or `503` are not
+automatically retried.
+
+## Listing and deletion
+
+Checkpoint capture history and rewindable ancestry support bounded `limit` and
+opaque `cursor` parameters. Convenience iterators are lazy, preserve server
+order, and fetch one page at a time. Treat cursors as opaque.
+
+Deletion is idempotent but cannot remove a checkpoint that is still referenced.
+Deleted checkpoints disappear from live label lookup; their label may then be
+reused.
+
+## Durability, retention, and accounting
+
+`Checkpoint.durability` reports whether checkpoint state is immediately
+available or has completed durable storage. The high-level SDK call is the same
+in either case, but restoring from durable storage can take longer and is more
+likely to return `202`. If a checkpoint cannot be restored, the operation fails
+rather than returning an unusable browser session.
+
+Published checkpoint latency measures mutation admission through the terminal
+checkpoint result. Published rewind latency measures rewind admission through
+the terminal live session result; browser-library reconnection is reported
+separately. Service targets apply only when explicitly stated in the brawsr
+service documentation.
+
+Retention and quota are project policy. References prevent deletion while a
+checkpoint remains a base for another retained state. Public logical size is
+the reconstructed checkpoint size and is not a billing promise.
+
+## Typed errors
+
+SDK errors expose only the public envelope:
+
+- HTTP status and stable code;
+- safe message and request ID;
+- optional operation ID;
+- retryability and optional retry delay.
+
+Raw upstream bodies, internal infrastructure details, credentials, and
+idempotency keys are not exposed.
+
+Read [`LIMITATIONS.md`](LIMITATIONS.md) for the product boundaries that affect
+correct recovery design.

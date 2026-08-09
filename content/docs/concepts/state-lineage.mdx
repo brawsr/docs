@@ -1,0 +1,36 @@
+---
+title: State lineage
+description: The precise relationship between checkpoint, rewind, fork, and remote effects.
+---
+
+<StateLineage />
+
+## Checkpoint
+
+A checkpoint captures browser state at an explicit, caller-chosen safe point between actions.
+The caller is responsible for deciding that application work is settled. brawsr does not infer
+application-level quiescence in v0.1.
+
+Persist the checkpoint ID when a workflow must recover durably. Labels are useful for automation,
+but a deleted checkpoint can release its label for reuse.
+
+## Rewind
+
+Rewind restores captured browser-side state and returns a live session result. It is an explicit
+API or SDK action; brawsr does not transparently replay CDP commands or application actions.
+
+After rewind, reconnect to the returned CDP endpoint and recreate browser-library objects. Handles
+derived from the old browser process are stale.
+
+## Fork
+
+Fork creates ordered child sessions from a selected checkpoint. Each child is an independent
+browser session. Your workflow can explore branches concurrently, choose a result, and explicitly
+close the sessions it no longer needs.
+
+## The second rail matters
+
+Rewind is not a distributed transaction. It cannot undo a purchase, form submission, consumed
+one-time token, message, CAPTCHA attempt, or rate-limit counter that a remote service already
+accepted. Place checkpoints before irreversible actions and use the remote service's idempotency
+or reconciliation controls when available.

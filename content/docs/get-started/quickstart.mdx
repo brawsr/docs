@@ -1,0 +1,66 @@
+---
+title: Quickstart
+description: Create a session, checkpoint it, rewind, and reconnect over CDP.
+---
+
+This flow uses the TypeScript SDK and Playwright. Keep `BRAWSR_API_KEY` in your server-side
+environment; do not embed it in browser code or a public bundle.
+
+## 1. Install the clients
+
+```bash
+npm install @brawsr/sdk playwright-core
+```
+
+## 2. Set your API key
+
+```bash
+export BRAWSR_API_KEY="brawsr_..."
+```
+
+Every REST and WebSocket request is authenticated. Never put the API key in a URL.
+
+## 3. Create a recoverable session
+
+```ts
+import { BrawsrClient } from '@brawsr/sdk';
+import { chromium } from 'playwright-core';
+
+const brawsr = new BrawsrClient();
+const session = await brawsr.createSession();
+
+const checkpoint = await brawsr.createCheckpoint(session.id, {
+  label: 'before-submit',
+});
+
+// Attempt an action after the explicit safe point.
+const restored = await brawsr.rewind(session.id, checkpoint);
+
+const connection = brawsr.connectCDP(restored);
+const browser = await chromium.connectOverCDP(connection.endpointUrl, {
+  headers: connection.headers,
+});
+
+const context = browser.contexts()[0];
+const pages = context.pages();
+```
+
+The SDK returns only the terminal result whether the underlying mutation completed immediately
+or through a durable operation.
+
+## 4. Replace stale browser objects
+
+A successful rewind replaces the browser process and closes the old CDP transport. Reconnect
+with the returned endpoint and rediscover contexts, pages, frames, elements, workers, requests,
+and remote objects. Do not retain Playwright or Puppeteer handles across rewind.
+
+## 5. Close what you create
+
+Close sessions explicitly when your workflow no longer needs them. Forked sessions are peers;
+your application decides which result to keep and closes the rest.
+
+<Cards>
+  <Card title="API and SDK guide" href="/docs/guides/api-and-sdk" />
+  <Card title="Recovery limitations" href="/docs/guides/recovery-limitations" />
+  <Card title="API reference" href="/docs/api-reference" />
+</Cards>

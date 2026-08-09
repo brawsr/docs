@@ -1,0 +1,2002 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "brawsr API",
+    "version": "0.6.0",
+    "description": "Authenticated browser sessions with explicit checkpoint, rewind, and fork operations plus bounded session workspace reads. Rewind restores browser/client state; it does not undo effects already committed to remote servers."
+  },
+  "servers": [
+    {
+      "url": "https://api.brawsr.io"
+    }
+  ],
+  "security": [
+    {
+      "apiKey": []
+    }
+  ],
+  "paths": {
+    "/v1/sessions": {
+      "get": {
+        "operationId": "listSessions",
+        "summary": "List project sessions",
+        "description": "Returns a newest-first, cursor-paginated page. Runtime API-key authentication implies the project. Session ID and display_label filters are exact; search is a case-insensitive display-label substring; creation time uses an inclusive lower bound and exclusive upper bound.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceLimit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceCursor"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SessionStatus"
+            }
+          },
+          {
+            "name": "display_label",
+            "in": "query",
+            "description": "Exact normalized session display label.",
+            "schema": {
+              "$ref": "#/components/schemas/SessionDisplayLabel"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Case-insensitive substring match on the normalized session display label.",
+            "schema": {
+              "$ref": "#/components/schemas/SessionDisplayLabel"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "description": "Exact canonical session ID.",
+            "schema": {
+              "type": "string",
+              "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+            }
+          },
+          {
+            "name": "created_from",
+            "in": "query",
+            "description": "Inclusive session creation-time lower bound.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "created_before",
+            "in": "query",
+            "description": "Exclusive session creation-time upper bound.",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded session page",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSession",
+        "summary": "Create a browser session",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Session created",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSessionResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "get": {
+        "operationId": "getSession",
+        "summary": "Get a browser session",
+        "responses": {
+          "200": {
+            "description": "Session",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateSession",
+        "summary": "Update a session display label",
+        "description": "Strictly updates the optional customer display label. An empty string clears it.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated session",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionDetail"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "closeSession",
+        "summary": "Close a browser session",
+        "responses": {
+          "204": {
+            "description": "Session closed",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/cdp": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "get": {
+        "operationId": "connectCDP",
+        "summary": "Open the authenticated CDP WebSocket",
+        "description": "Upgrade this request to WebSocket with the same bearer credential. After rewind, reconnect to this same URL and discard every object derived from the prior connection.",
+        "x-brawsr-websocket": true,
+        "responses": {
+          "101": {
+            "description": "WebSocket upgrade accepted",
+            "headers": {
+              "Connection": {
+                "schema": {
+                  "type": "string",
+                  "const": "Upgrade"
+                }
+              },
+              "Upgrade": {
+                "schema": {
+                  "type": "string",
+                  "const": "websocket"
+                }
+              },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/checkpoints": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "post": {
+        "operationId": "createCheckpoint",
+        "summary": "Create an explicit browser checkpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckpointRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Checkpoint completed",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckpointResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "$ref": "#/components/responses/OperationAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listCheckpoints",
+        "summary": "List checkpoint capture history",
+        "description": "Returns checkpoints captured by this session, including deletion tombstones. This audit history is not a list of valid rewind targets; use the ancestry collection for that.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceLimit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceCursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deterministic keyset page",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapturePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/ancestry": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "get": {
+        "operationId": "listSessionAncestry",
+        "summary": "List currently rewindable checkpoint ancestry",
+        "description": "Returns only checkpoints reachable from the session's durable head/origin chain. These are the checkpoint IDs eligible for a rewind attempt, subject to their current lifecycle and durability.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceLimit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceCursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded rewindable ancestry page",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapturePage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/activity": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "get": {
+        "operationId": "listSessionActivity",
+        "summary": "List customer-visible session activity",
+        "description": "Returns lifecycle and operation outcomes without internal retries, worker messages, leases, or saga stages.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceLimit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceCursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded activity page",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/lineage": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "get": {
+        "operationId": "getSessionLineage",
+        "summary": "Get one hop of session fork lineage",
+        "description": "Returns the selected session, its optional parent edge, and one cursor-paged set of direct children. Expand child sessions with another request to render arbitrarily nested forks.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceLimit"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceCursor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Bounded one-hop lineage",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Lineage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/rewind": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "post": {
+        "operationId": "rewindSession",
+        "summary": "Rewind a session to a checkpoint",
+        "description": "Restores browser/client state. Effects already committed to remote servers are not rolled back. Exactly one of checkpoint_id or label is required.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RewindRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rewind completed",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RewindResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "$ref": "#/components/responses/OperationAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/sessions/{session_id}/fork": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/SessionID"
+        }
+      ],
+      "post": {
+        "operationId": "forkSession",
+        "summary": "Fork a checkpoint into ordered browser sessions",
+        "description": "Creates one to ten independent browser sessions from exactly one checkpoint selector. A completed response contains the entire ordered child set; an accepted response contains only the durable operation and never exposes partial children.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "All fork children are published and usable",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForkResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "$ref": "#/components/responses/OperationAccepted"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "422": {
+            "$ref": "#/components/responses/InvalidParameters"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/checkpoints/{checkpoint_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/CheckpointID"
+        }
+      ],
+      "get": {
+        "operationId": "getCheckpoint",
+        "summary": "Get a checkpoint",
+        "responses": {
+          "200": {
+            "description": "Checkpoint",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Checkpoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteCheckpoint",
+        "summary": "Delete an eligible checkpoint",
+        "responses": {
+          "204": {
+            "description": "Checkpoint deletion committed",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    },
+    "/v1/operations/{operation_id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/OperationID"
+        }
+      ],
+      "get": {
+        "operationId": "getOperation",
+        "summary": "Get a durable operation",
+        "responses": {
+          "200": {
+            "description": "Operation",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestID"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Operation"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/Unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "headers": {
+      "RequestID": {
+        "description": "Request correlation identifier.",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "parameters": {
+      "SessionID": {
+        "name": "session_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+        }
+      },
+      "CheckpointID": {
+        "name": "checkpoint_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^chk_[0-9a-f]{32}$"
+        }
+      },
+      "OperationID": {
+        "name": "operation_id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^op_[0-9a-f]{32}$"
+        }
+      },
+      "WorkspaceLimit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Maximum items to return. Defaults to 50.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 50
+        }
+      },
+      "WorkspaceCursor": {
+        "name": "cursor",
+        "in": "query",
+        "description": "Opaque signed cursor returned by the preceding page. It is scoped to the authenticated project, collection, session, filters, and order.",
+        "schema": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Stable key for one logical mutation. Reuse only with the byte-equivalent request.",
+        "schema": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        }
+      }
+    },
+    "schemas": {
+      "CreateSessionRequest": {
+        "type": "object",
+        "properties": {
+          "display_label": {
+            "$ref": "#/components/schemas/SessionDisplayLabel"
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "mem_mib": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateSessionResult": {
+        "type": "object",
+        "required": [
+          "id",
+          "cdp_url",
+          "ttl_seconds",
+          "display_label"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "cdp_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^wss?://"
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "display_label": {
+            "$ref": "#/components/schemas/SessionDisplayLabel"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SessionStatus": {
+        "type": "string",
+        "examples": [
+          "active",
+          "closed",
+          "expired"
+        ],
+        "x-extensible-enum": [
+          "active",
+          "closed",
+          "expired"
+        ]
+      },
+      "SessionDisplayLabel": {
+        "type": "string",
+        "description": "Optional customer label after trimming surrounding whitespace. Empty clears the label; control characters are rejected.",
+        "maxLength": 128
+      },
+      "SessionCloseReason": {
+        "type": "string",
+        "enum": [
+          "normal",
+          "expired",
+          "worker_lost",
+          "ended"
+        ]
+      },
+      "Session": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_label",
+          "status",
+          "attachable",
+          "created_at",
+          "expires_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "cdp_url": {
+            "description": "Present only for an attachable runtime session. It is omitted for closed/expired sessions and human console reads.",
+            "type": "string",
+            "format": "uri",
+            "pattern": "^wss?://"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SessionStatus"
+          },
+          "display_label": {
+            "$ref": "#/components/schemas/SessionDisplayLabel"
+          },
+          "close_reason": {
+            "$ref": "#/components/schemas/SessionCloseReason"
+          },
+          "attachable": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "head_checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "origin_checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/SessionParent"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SessionDetail": {
+        "type": "object",
+        "required": [
+          "id",
+          "display_label",
+          "status",
+          "attachable",
+          "created_at",
+          "expires_at",
+          "checkpoint_count",
+          "direct_child_count",
+          "visible_descendant_count",
+          "visible_descendant_count_truncated",
+          "collections"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$" },
+          "cdp_url": { "description": "Present only for an attachable runtime session. It is omitted for closed/expired sessions and human console reads.", "type": "string", "format": "uri", "pattern": "^wss?://" },
+          "status": { "$ref": "#/components/schemas/SessionStatus" },
+          "display_label": { "$ref": "#/components/schemas/SessionDisplayLabel" },
+          "close_reason": { "$ref": "#/components/schemas/SessionCloseReason" },
+          "attachable": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "closed_at": { "type": "string", "format": "date-time" },
+          "head_checkpoint_id": { "type": "string", "pattern": "^chk_[0-9a-f]{32}$" },
+          "origin_checkpoint_id": { "type": "string", "pattern": "^chk_[0-9a-f]{32}$" },
+          "checkpoint_count": { "type": "integer", "minimum": 0 },
+          "direct_child_count": { "type": "integer", "minimum": 0 },
+          "visible_descendant_count": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "visible_descendant_count_truncated": { "type": "boolean" },
+          "active_operation": { "$ref": "#/components/schemas/SessionActiveOperation" },
+          "collections": { "$ref": "#/components/schemas/SessionCollectionReferences" },
+          "parent": { "$ref": "#/components/schemas/SessionParent" }
+        },
+        "additionalProperties": false
+      },
+      "SessionActiveOperation": {
+        "type": "object",
+        "required": ["id", "kind", "status", "stage", "stage_sequence", "created_at", "updated_at"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^op_[0-9a-f]{32}$" },
+          "kind": { "type": "string", "enum": ["checkpoint", "rewind", "close", "checkpoint-delete", "fork"] },
+          "status": { "type": "string", "enum": ["pending", "running", "reconciling"] },
+          "stage": { "type": "string" },
+          "stage_sequence": { "type": "integer", "minimum": 0 },
+          "checkpoint_id": { "type": "string", "pattern": "^chk_[0-9a-f]{32}$" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      },
+      "SessionCollectionReferences": {
+        "type": "object",
+        "required": ["checkpoints", "ancestry", "activity", "lineage"],
+        "properties": {
+          "checkpoints": { "type": "string", "pattern": "^/v1/" },
+          "ancestry": { "type": "string", "pattern": "^/v1/" },
+          "activity": { "type": "string", "pattern": "^/v1/" },
+          "lineage": { "type": "string", "pattern": "^/v1/" }
+        },
+        "additionalProperties": false
+      },
+      "UpdateSessionRequest": {
+        "type": "object",
+        "required": [
+          "display_label"
+        ],
+        "properties": {
+          "display_label": {
+            "$ref": "#/components/schemas/SessionDisplayLabel"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SessionParent": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "checkpoint_id",
+          "operation_id",
+          "created_at"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SessionPage": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            }
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CheckpointRequest": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "not": {
+              "pattern": "^chk_[0-9a-f]{32}$"
+            }
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "minimum": 60,
+            "maximum": 604800,
+            "default": 86400
+          }
+        },
+        "additionalProperties": false
+      },
+      "RewindRequest": {
+        "type": "object",
+        "properties": {
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "not": {
+              "pattern": "^chk_[0-9a-f]{32}$"
+            }
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "checkpoint_id"
+            ]
+          },
+          {
+            "required": [
+              "label"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      },
+      "ForkRequest": {
+        "type": "object",
+        "required": [
+          "n"
+        ],
+        "properties": {
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "not": {
+              "pattern": "^chk_[0-9a-f]{32}$"
+            }
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "ttl_seconds": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "checkpoint_id"
+            ]
+          },
+          {
+            "required": [
+              "label"
+            ]
+          }
+        ],
+        "additionalProperties": false
+      },
+      "CheckpointLifecycle": {
+        "type": "string",
+        "examples": [
+          "creating",
+          "ready",
+          "failed",
+          "lost",
+          "deleting",
+          "deleted"
+        ],
+        "x-extensible-enum": [
+          "creating",
+          "ready",
+          "failed",
+          "lost",
+          "deleting",
+          "deleted"
+        ]
+      },
+      "CheckpointDurability": {
+        "type": "string",
+        "examples": [
+          "none",
+          "local",
+          "replicating",
+          "warm"
+        ],
+        "x-extensible-enum": [
+          "none",
+          "local",
+          "replicating",
+          "warm"
+        ]
+      },
+      "Checkpoint": {
+        "type": "object",
+        "required": [
+          "id",
+          "session_id",
+          "parent_id",
+          "operation_id",
+          "lifecycle",
+          "durability",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "parent_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/CheckpointLifecycle"
+          },
+          "durability": {
+            "$ref": "#/components/schemas/CheckpointDurability"
+          },
+          "label": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "logical_size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "Capture": {
+        "type": "object",
+        "required": [
+          "id",
+          "capture_session_id",
+          "operation_id",
+          "lifecycle",
+          "durability",
+          "is_head",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "capture_session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "parent_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "lifecycle": {
+            "$ref": "#/components/schemas/CheckpointLifecycle"
+          },
+          "durability": {
+            "$ref": "#/components/schemas/CheckpointDurability"
+          },
+          "is_head": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "logical_size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "additionalProperties": false
+      },
+      "CapturePage": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/Capture"
+            }
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActivityKind": {
+        "type": "string",
+        "enum": [
+          "session_created",
+          "session_closed",
+          "operation",
+          "checkpoint_deleted"
+        ]
+      },
+      "ActivityForkChild": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "checkpoint_id",
+          "ordinal"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9
+          }
+        },
+        "additionalProperties": false
+      },
+      "Activity": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ActivityKind"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "checkpoint",
+              "rewind",
+              "close",
+              "checkpoint-delete",
+              "fork"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "reconciling",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "fork_children": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/ActivityForkChild"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ActivityPage": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/Activity"
+            }
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LineageChild": {
+        "type": "object",
+        "required": [
+          "session",
+          "checkpoint_id",
+          "operation_id",
+          "ordinal",
+          "created_at"
+        ],
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Lineage": {
+        "type": "object",
+        "required": [
+          "session",
+          "children"
+        ],
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "parent": {
+            "$ref": "#/components/schemas/SessionParent"
+          },
+          "children": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/LineageChild"
+            }
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Operation": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "stage",
+          "stage_sequence",
+          "session_id",
+          "checkpoint_id",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "kind": {
+            "type": "string",
+            "examples": [
+              "checkpoint",
+              "rewind",
+              "checkpoint-delete",
+              "fork"
+            ],
+            "x-extensible-enum": [
+              "checkpoint",
+              "rewind",
+              "checkpoint-delete",
+              "fork"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "examples": [
+              "pending",
+              "running",
+              "reconciling",
+              "succeeded",
+              "failed"
+            ],
+            "x-extensible-enum": [
+              "pending",
+              "running",
+              "reconciling",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "stage": {
+            "type": "string"
+          },
+          "stage_sequence": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "checkpoint_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "result": {
+            "type": "object"
+          },
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SafePoint": {
+        "type": "object",
+        "required": [
+          "infrastructure_barriers_passed",
+          "warning_codes"
+        ],
+        "properties": {
+          "infrastructure_barriers_passed": {
+            "type": "boolean",
+            "const": true
+          },
+          "warning_codes": {
+            "type": "array",
+            "maxItems": 16,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{0,63}$"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CheckpointResult": {
+        "type": "object",
+        "required": [
+          "operation_id",
+          "checkpoint_id",
+          "safe_point"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "safe_point": {
+            "$ref": "#/components/schemas/SafePoint"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RewindResult": {
+        "type": "object",
+        "required": [
+          "operation_id",
+          "session_id",
+          "checkpoint_id",
+          "routing_generation",
+          "cdp_url"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "routing_generation": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "cdp_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^wss?://"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ForkChild": {
+        "type": "object",
+        "required": [
+          "branch_index",
+          "session_id",
+          "cdp_url",
+          "expires_at"
+        ],
+        "properties": {
+          "branch_index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9
+          },
+          "session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "cdp_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^wss?://"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ForkResult": {
+        "type": "object",
+        "required": [
+          "operation_id",
+          "source_session_id",
+          "checkpoint_id",
+          "status",
+          "children"
+        ],
+        "properties": {
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "source_session_id": {
+            "type": "string",
+            "pattern": "^sess_[0-9a-f]{16}([0-9a-f]{16})?$"
+          },
+          "checkpoint_id": {
+            "type": "string",
+            "pattern": "^chk_[0-9a-f]{32}$"
+          },
+          "status": {
+            "type": "string",
+            "const": "succeeded"
+          },
+          "children": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/ForkChild"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "request_id",
+          "retryable"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "operation_id": {
+            "type": "string",
+            "pattern": "^op_[0-9a-f]{32}$"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "retry_after_ms": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30000
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/Error"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "responses": {
+      "OperationAccepted": {
+        "description": "Durable operation continues asynchronously",
+        "headers": {
+          "Location": {
+            "required": true,
+            "description": "Relative URL of the exact durable operation resource.",
+            "schema": {
+              "type": "string",
+              "pattern": "^/v1/operations/op_[0-9a-f]{32}$"
+            }
+          },
+          "Retry-After": {
+            "required": true,
+            "description": "Minimum polling delay in seconds.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          },
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestID"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Operation"
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "$ref": "#/components/responses/PublicError"
+      },
+      "Unauthorized": {
+        "$ref": "#/components/responses/PublicError"
+      },
+      "TooManyRequests": {
+        "$ref": "#/components/responses/RetryablePublicError"
+      },
+      "NotFound": {
+        "$ref": "#/components/responses/PublicError"
+      },
+      "Conflict": {
+        "$ref": "#/components/responses/PublicError"
+      },
+      "InvalidParameters": {
+        "$ref": "#/components/responses/PublicError"
+      },
+      "Unavailable": {
+        "$ref": "#/components/responses/RetryablePublicError"
+      },
+      "BadGateway": {
+        "$ref": "#/components/responses/RetryablePublicError"
+      },
+      "PublicError": {
+        "description": "Safe public error",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestID"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      },
+      "RetryablePublicError": {
+        "description": "Safe retryable public error",
+        "headers": {
+          "Retry-After": {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          },
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestID"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorEnvelope"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+# v0.1 recovery limitations
+
+brawsr rewind restores a captured browser state. It is not a transaction across
+the browser and every remote system the browser contacted.
+
+## Explicit safe points only
+
+v0.1 supports explicit checkpoints. Create one between application actions
+after your automation has settled the work it cares about. brawsr gates its
+infrastructure during capture but does not decide whether application-level
+requests, IndexedDB work, service-worker work, or page scripts are semantically
+complete.
+
+Automatic quiescence is not a v0.1 contract.
+
+## Remote server effects are not rewound
+
+Rewind restores browser-side DOM, JavaScript-reachable state, profile/storage,
+cookies, history, timers, and captured network/auth state. It cannot undo an
+effect already accepted by a remote server, including a purchase, submitted
+form, consumed one-time token, sent message, CAPTCHA attempt, or rate-limit
+counter.
+
+Place checkpoints before irreversible actions and use the remote service's own
+idempotency or reconciliation mechanism when available.
+
+## Browser-library objects become stale
+
+Successful rewind replaces the browser process and closes the old public CDP
+transport. Reconnect to the returned public CDP URL with fresh authorization,
+then rediscover contexts, pages, targets, frames, elements, workers, execution
+contexts, requests, and remote objects.
+
+Do not reuse old Playwright, Puppeteer, Stagehand, or raw-CDP handles. brawsr
+does not transparently replay failed CDP commands or application actions.
+
+## Live connections are re-established, not preserved
+
+Long-lived WSS, SSE, WebRTC, streaming responses, and in-flight TCP/TLS
+connections are not preserved as live end-to-end conversations. Browser
+network services recover or invalidate captured transports, and the
+application may need to reconnect, resubscribe, reauthenticate, or reconcile
+missed events.
+
+## Selenium WebDriver does not reconnect transparently
+
+A classic Selenium WebDriver session is not the public CDP connection and
+cannot be rebound to the replacement browser in v0.1. Selenium's CDP helpers do
+not change that WebDriver-session lifecycle.
+
+A WebDriver/BiDi adapter is not part of the current API. Selenium integrations
+must establish a new driver session after rewind.
+
+## Node loss
+
+Loss of the host running an active browser closes that live session. Automatic
+live-session failover is not part of v0.1.
+
+## Current API scope
+
+- Checkpoints are caller-directed safe points; brawsr does not infer application
+  quiescence.
+- Recovery is an explicit SDK/API action; commands and application actions are
+  not replayed automatically.
+- Rewind can use immediately available state or restore from durable storage.
+  SDK calls hide `202` polling, but caller deadlines must allow for both paths.
+
+For operation semantics and reconnect examples, read [`API.md`](API.md).
