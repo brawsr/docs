@@ -6,8 +6,8 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: (
         <span className="brand-lockup">
-          <span className="brand-mark" aria-hidden="true">b/</span>
-          <span>{appName}</span>
+          <span className="brand-wordmark">brawsr<span aria-hidden="true">.</span></span>
+          <span className="brand-section">{appName.replace('brawsr ', '')}</span>
           <span className="version-pill">v0.6</span>
         </span>
       ),

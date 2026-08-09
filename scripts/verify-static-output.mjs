@@ -46,6 +46,16 @@ for (const relative of required) {
   invariant(await exists(path.join(outputRoot, relative)), `Missing static output: ${relative}`);
 }
 
+const home = await readFile(path.join(outputRoot, 'index.html'), 'utf8');
+invariant(home.includes('Build from a'), 'Homepage is missing the branded hero headline');
+invariant(home.includes('known browser state.'), 'Homepage is missing the branded hero accent');
+invariant(home.includes('RECOVERY TRACE'), 'Homepage is missing the recovery trace instrument');
+invariant(home.includes('brawsr'), 'Homepage is missing the brawsr wordmark');
+invariant(
+  !home.includes('Recover, retry, and branch with intent.'),
+  'Deprecated generic hero copy returned to the homepage',
+);
+
 const operationSources = (await walk(path.join(repoRoot, 'content/docs/api-reference/operations')))
   .filter((file) => file.endsWith('.mdx'));
 invariant(operationSources.length === 16, `Expected 16 OpenAPI operations, found ${operationSources.length}`);

@@ -1,6 +1,5 @@
 import { Provider } from '@/components/provider';
-import '@fontsource-variable/spline-sans/wght.css';
-import '@fontsource-variable/source-sans-3/wght.css';
+import '@fontsource-variable/inter-tight';
 import '@fontsource/commit-mono/400.css';
 import '@fontsource/commit-mono/500.css';
 import './global.css';
