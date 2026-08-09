@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const sourceRoot = path.join(repoRoot, 'vendor/developer-docs/v0.6.0/source');
+const sourceRoot = path.join(repoRoot, 'vendor/public-contract/v0.6.1/source');
 const outputRoot = path.join(repoRoot, 'content/docs/guides');
 
 const guides = [
@@ -40,8 +40,7 @@ await mkdir(outputRoot, { recursive: true });
 for (const guide of guides) {
   const source = await readFile(path.join(sourceRoot, guide.source), 'utf8');
   const frontmatter = `---\ntitle: ${guide.title}\ndescription: ${guide.description}\n---\n\n`;
-  const notice = `{/* Generated from developer-docs v0.6.0/${guide.source}. Do not edit by hand. */}\n\n`;
-  await writeFile(path.join(outputRoot, guide.output), frontmatter + notice + transformBody(source));
+  await writeFile(path.join(outputRoot, guide.output), frontmatter + transformBody(source));
 }
 
 console.log(`generated ${guides.length} release-bound guides`);

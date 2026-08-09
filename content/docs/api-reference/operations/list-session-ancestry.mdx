@@ -3,7 +3,7 @@ title: List currently rewindable checkpoint ancestry
 full: true
 _openapi:
   preload:
-    - ./vendor/developer-docs/v0.6.0/source/openapi/v1.json
+    - ./vendor/public-contract/v0.6.1/source/openapi/v1.json
   method: GET
   webhook: false
   toc: []
@@ -15,8 +15,6 @@ _openapi:
           attempt, subject to their current lifecycle and durability.
 ---
 
-{/* Generated from developer-docs v0.6.0. Do not edit by hand. */}
-
 export default function Layout(props) {
   const { APIPage, OpenAPIPage } = props.components ?? {};
   // "APIPage" is the old name from v10, this allows both for backward compatibility
@@ -24,7 +22,7 @@ export default function Layout(props) {
   return (
     <>
       {props.children}
-      <Comp document="./vendor/developer-docs/v0.6.0/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/ancestry","method":"get"}]} showDescription />
+      <Comp document="./vendor/public-contract/v0.6.1/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/ancestry","method":"get"}]} showDescription />
     </>
   );
 }

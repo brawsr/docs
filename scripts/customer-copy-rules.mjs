@@ -1,0 +1,17 @@
+export const forbiddenCustomerCopy = [
+  'customer-visible',
+  'internal retries',
+  'worker messages',
+  'leases',
+  'saga stages',
+  'orchestration stages',
+  'production endpoint',
+  'built in',
+  'private github',
+  'github credential',
+  'ordinary builds',
+  'developer-docs',
+  'source commit',
+  'release asset',
+  'vendored',
+];

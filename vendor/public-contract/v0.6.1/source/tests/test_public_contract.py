@@ -102,12 +102,19 @@ class PublicContractTest(unittest.TestCase):
             {"$ref": "#/components/schemas/CapturePage"},
         )
 
-    def test_activity_and_lineage_hide_implementation_and_stay_lazy(self) -> None:
+    def test_activity_and_lineage_are_customer_ready_and_stay_lazy(self) -> None:
         contract = self.contract()
         paths = contract["paths"]
         activity = paths["/v1/sessions/{session_id}/activity"]["get"]
         lineage = paths["/v1/sessions/{session_id}/lineage"]["get"]
-        self.assertIn("without internal retries", activity["description"])
+        self.assertEqual(activity["summary"], "List session activity")
+        self.assertEqual(
+            activity["description"],
+            "Returns session events and checkpoint, rewind, and fork outcomes.",
+        )
+        for forbidden in ("internal retries", "worker messages", "leases", "saga"):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, activity["description"].lower())
         self.assertIn("one cursor-paged set of direct children", lineage["description"])
         self.assertLessEqual(
             contract["components"]["schemas"]["Lineage"]["properties"]["children"]["maxItems"],
@@ -148,7 +155,9 @@ class PublicContractTest(unittest.TestCase):
             )
         )
         mcp_guide = (ROOT / "MCP.md").read_text()
-        self.assertIn("https://api.brawsr.io", mcp_guide)
+        self.assertIn("connects to brawsr automatically", " ".join(mcp_guide.split()))
+        self.assertNotIn("production endpoint", mcp_guide.lower())
+        self.assertNotIn("built in", mcp_guide.lower())
         configuration = re.search(r"```text\n(.*?)```", mcp_guide, re.DOTALL)
         self.assertIsNotNone(configuration)
         self.assertEqual(

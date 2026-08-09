@@ -1,30 +1,30 @@
 {
   "schema_version": "brawsr-docs-consumer-lock-v1",
   "repository": "brawsr/developer-docs",
-  "release_url": "https://github.com/brawsr/developer-docs/releases/tag/v0.6.0",
-  "tag": "v0.6.0",
-  "contract_version": "0.6.0",
-  "source_commit": "12795c141d28fa32937ec3d4175d0466fef9fe1a",
-  "source_tree": "9cfb94679e858c296f3fc664687914eb61ccf7a1",
-  "ci_run_id": 31305436689,
+  "release_url": "https://github.com/brawsr/developer-docs/releases/tag/v0.6.1",
+  "tag": "v0.6.1",
+  "contract_version": "0.6.1",
+  "source_commit": "c218e4d9162e1968d517ed0d40f17d99bf591a5b",
+  "source_tree": "0f6971cc09cf67f3ca141ab65f309de0197baef3",
+  "ci_run_id": 31308983572,
   "assets": {
-    "SHA256SUMS": "5426065bd704b505a4e00357a356d23b2042f44a5322612ee2b0dfb3914ade6d",
-    "developer-docs-0.6.0.manifest.json": "80080c59889906123f82b5db6eddb14a09332843313e67be3512c6f67f74e55f",
-    "developer-docs-0.6.0.tar.gz": "59fe3559bf4bf72c54c4a34968a5ab5880a3d148f5cbde0b2a0b615a4ac361d5"
+    "SHA256SUMS": "690d6dfd9accfd45887aa24d810dcce899c4ec9df37410eb1b4f5c63bd8caed0",
+    "developer-docs-0.6.1.manifest.json": "31fcf21d0e4ea5357ba46b8ecf6c3af0047b887b809ffdaeba38886c1104afa2",
+    "developer-docs-0.6.1.tar.gz": "13a2a7912baf0cfbc873eb0f7b544d8fa497d300ab3e7e74abf9881f06d1b118"
   },
-  "openapi_sha256": "416412b7c356040e8d1d8ce4c2a72504773b609a647b323532122803d609b2b3",
+  "openapi_sha256": "31ba44971612150eaf9b522cdab1b0522b3e17d7c9d5fd365860e57383393522",
   "source_files": {
     ".github/workflows/ci.yml": "18ea400c73f220028800e1e952fd5cc98702ec12d9b2018241bee267b0d06ef7",
     ".gitignore": "fa5b2d4433b835933b22140e01833a4972a0ee8532d76951286e3dd071994af0",
     ".gitleaks.toml": "4eb6918617a6e62cb85440bbb58c116134728ddef1a0f1bfec0d12653490e677",
-    "API.md": "d437b207cf45a7e072b6eedd86c76246002a36b8536333c788d0b3069de1903c",
+    "API.md": "7ef165d9db2ef1e7a7bc8101d8649a4034564e5c41f2e74ddf32794283496c83",
     "LIMITATIONS.md": "e95e7c26fc847c97db15a74ddd158b8dcfa2376feb336cc59d4b89f5090151de",
-    "MCP.md": "595ec235f2921957f696e824772461c31dc97c5316db60d8b95f890bb99da044",
+    "MCP.md": "e2b181ccc6cba74a4fe4750089a8062934311b043b57eadcb04381d88d763b03",
     "Makefile": "d5a9a10e6daf74dbc25239a7e08873f5a14cf9fc4e0a4907e2b3734addc227cd",
     "README.md": "0d1887d0bf537861933d73a78050551b76aaea396b2b3599e4b8896fa2aec61c",
-    "contract-lock.json": "2f9ef6ca80513253fa04e8d0e62dc42fbf91867d9abdcdcd9e27a29540494245",
-    "openapi/v1.json": "416412b7c356040e8d1d8ce4c2a72504773b609a647b323532122803d609b2b3",
+    "contract-lock.json": "a35bf0be0c69f4ee2b6b28b4934d76d2e63d20e7800668bcbc23819f13d980e7",
+    "openapi/v1.json": "31ba44971612150eaf9b522cdab1b0522b3e17d7c9d5fd365860e57383393522",
     "scripts/verify_contract.py": "86d7fef9b1c0fa6369283a32874cddf68d319acc31d620cf2ccadac4ec11fcbd",
-    "tests/test_public_contract.py": "e0d0c476ffda828194686bf192b221eaafc98d9c402864bda37e59958647dd40"
+    "tests/test_public_contract.py": "c43fcb91b78c33d6719277af438884749cff891d9d95fe0ac7149e658c326f82"
   }
 }

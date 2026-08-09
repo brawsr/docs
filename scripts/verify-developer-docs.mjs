@@ -5,8 +5,10 @@ import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lock = JSON.parse(await readFile(path.join(repoRoot, 'developer-docs.lock.json'), 'utf8'));
-const releaseRoot = path.join(repoRoot, 'vendor/developer-docs', lock.tag);
+const releaseRoot = path.join(repoRoot, 'vendor/public-contract', lock.tag);
 const sourceRoot = path.join(releaseRoot, 'source');
+const bundleFilename = `developer-docs-${lock.contract_version}.tar.gz`;
+const manifestFilename = `developer-docs-${lock.contract_version}.manifest.json`;
 
 function invariant(condition, message) {
   if (!condition) throw new Error(message);
@@ -38,14 +40,14 @@ for (const [filename, expected] of Object.entries(lock.assets)) {
 }
 
 const manifest = JSON.parse(
-  await readFile(path.join(releaseRoot, 'developer-docs-0.6.0.manifest.json'), 'utf8'),
+  await readFile(path.join(releaseRoot, manifestFilename), 'utf8'),
 );
 invariant(manifest.tag === lock.tag, 'Release tag does not match consumer lock');
 invariant(manifest.version === lock.contract_version, 'Contract version does not match release');
 invariant(manifest.commit === lock.source_commit, 'Source commit does not match release');
 invariant(manifest.verification.ci_run_id === lock.ci_run_id, 'CI identity does not match release');
 invariant(
-  manifest.bundle.sha256 === lock.assets['developer-docs-0.6.0.tar.gz'],
+  manifest.bundle.sha256 === lock.assets[bundleFilename],
   'Bundle digest does not match release manifest',
 );
 invariant(manifest.contract.sha256 === lock.openapi_sha256, 'OpenAPI digest does not match manifest');

@@ -8,7 +8,7 @@
   "packageManager": "npm@11.8.0",
   "scripts": {
     "build": "npm run content:check && next build --webpack && npm run output:check",
-    "content:check": "node scripts/verify-developer-docs.mjs && npm run content:generate && git diff --exit-code -- content/docs/api-reference/operations content/docs/guides",
+    "content:check": "node scripts/verify-developer-docs.mjs && npm run content:generate && node scripts/verify-customer-copy.mjs && git diff --exit-code -- content/docs/api-reference/operations content/docs/guides",
     "content:generate": "node scripts/sync-release-guides.mjs && node scripts/generate-openapi.mjs",
     "dev": "next dev",
     "lint": "eslint .",

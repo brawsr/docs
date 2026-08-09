@@ -1,6 +1,7 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { forbiddenCustomerCopy } from './customer-copy-rules.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(repoRoot, 'out');
@@ -99,5 +100,20 @@ invariant(broken.length === 0, `Broken internal links:\n${broken.slice(0, 30).jo
 const llms = await readFile(path.join(outputRoot, 'llms-full.txt'), 'utf8');
 invariant(llms.includes('Recovery limitations'), 'llms-full.txt is missing release-bound guides');
 invariant(!llms.includes('Hello World'), 'Template placeholder leaked into llms-full.txt');
+
+const customerArtifacts = outputFiles.filter(
+  (file) => file.endsWith('.html') || file.endsWith('llms.txt') || file.endsWith('llms-full.txt'),
+);
+const copyViolations = [];
+for (const file of customerArtifacts) {
+  const content = (await readFile(file, 'utf8')).toLowerCase();
+  for (const phrase of forbiddenCustomerCopy) {
+    if (content.includes(phrase)) copyViolations.push(`${path.relative(outputRoot, file)}: ${phrase}`);
+  }
+}
+invariant(
+  copyViolations.length === 0,
+  `Rendered customer copy contains maintainer or orchestration language:\n${copyViolations.slice(0, 30).join('\n')}`,
+);
 
 console.log(`verified ${htmlFiles.length} static HTML pages and ${operationSources.length} API operations`);

@@ -1,6 +1,6 @@
 ---
 title: API reference
-description: The REST and CDP contract generated from developer-docs v0.6.0.
+description: REST and CDP operations for browser sessions, checkpoints, rewind, and fork.
 ---
 
 The production REST base URL is `https://api.brawsr.io`. Authenticate every REST and WebSocket
@@ -10,12 +10,10 @@ request with a project API key:
 Authorization: Bearer brawsr_...
 ```
 
-The operation pages are generated from the locally vendored OpenAPI 3.1 contract. The contract is
-pinned by version, source commit, release asset digest, and OpenAPI digest before every build.
+Each operation page is generated from the published OpenAPI 3.1 contract.
 
-<Callout type="warn" title="No credential-bearing playground">
-  This static site intentionally does not proxy or retain API credentials. Use the SDK or your own
-  server-side HTTP client to execute requests.
+<Callout type="info" title="Run requests from your application">
+  This reference is read-only. Use the SDK or your server-side HTTP client to execute requests.
 </Callout>
 
 <Cards>

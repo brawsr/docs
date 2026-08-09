@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "brawsr API",
-    "version": "0.6.0",
+    "version": "0.6.1",
     "description": "Authenticated browser sessions with explicit checkpoint, rewind, and fork operations plus bounded session workspace reads. Rewind restores browser/client state; it does not undo effects already committed to remote servers."
   },
   "servers": [
@@ -497,8 +497,8 @@
       ],
       "get": {
         "operationId": "listSessionActivity",
-        "summary": "List customer-visible session activity",
-        "description": "Returns lifecycle and operation outcomes without internal retries, worker messages, leases, or saga stages.",
+        "summary": "List session activity",
+        "description": "Returns session events and checkpoint, rewind, and fork outcomes.",
         "parameters": [
           {
             "$ref": "#/components/parameters/WorkspaceLimit"

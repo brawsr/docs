@@ -1,20 +1,17 @@
 ---
-title: List customer-visible session activity
+title: List session activity
 full: true
 _openapi:
   preload:
-    - ./vendor/developer-docs/v0.6.0/source/openapi/v1.json
+    - ./vendor/public-contract/v0.6.1/source/openapi/v1.json
   method: GET
   webhook: false
   toc: []
   structuredData:
     headings: []
     contents:
-      - content: Returns lifecycle and operation outcomes without internal retries,
-          worker messages, leases, or saga stages.
+      - content: Returns session events and checkpoint, rewind, and fork outcomes.
 ---
-
-{/* Generated from developer-docs v0.6.0. Do not edit by hand. */}
 
 export default function Layout(props) {
   const { APIPage, OpenAPIPage } = props.components ?? {};
@@ -23,7 +20,7 @@ export default function Layout(props) {
   return (
     <>
       {props.children}
-      <Comp document="./vendor/developer-docs/v0.6.0/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/activity","method":"get"}]} showDescription />
+      <Comp document="./vendor/public-contract/v0.6.1/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}/activity","method":"get"}]} showDescription />
     </>
   );
 }

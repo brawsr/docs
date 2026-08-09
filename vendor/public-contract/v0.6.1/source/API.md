@@ -93,8 +93,8 @@ key:
   including deletion tombstones;
 - `GET /v1/sessions/{session_id}/ancestry` returns the currently rewindable
   checkpoint chain;
-- `GET /v1/sessions/{session_id}/activity` returns customer-visible lifecycle
-  and checkpoint/rewind/fork outcomes; and
+- `GET /v1/sessions/{session_id}/activity` returns session events and
+  checkpoint, rewind, and fork outcomes; and
 - `GET /v1/sessions/{session_id}/lineage` returns the selected session, its
   optional parent edge, and one page of direct fork children.
 
@@ -116,8 +116,7 @@ Capture history and rewindable ancestry answer different questions. Capture
 history is the audit of checkpoints created by that session, including deleted
 or abandoned branches. Ancestry is the current reachable chain to use when
 choosing a rewind target. A successful fork is one activity item with its
-ordered child session IDs; internal retries and orchestration stages are never
-part of this customer view.
+ordered child session IDs.
 
 Puppeteer uses the same generic handoff:
 
@@ -220,8 +219,7 @@ SDK errors expose only the public envelope:
 - optional operation ID;
 - retryability and optional retry delay.
 
-Raw upstream bodies, internal infrastructure details, credentials, and
-idempotency keys are not exposed.
+Error text is sanitized and never includes credentials or idempotency keys.
 
 Read [`LIMITATIONS.md`](LIMITATIONS.md) for the product boundaries that affect
 correct recovery design.

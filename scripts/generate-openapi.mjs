@@ -4,7 +4,7 @@ import { generateFiles } from 'fumadocs-openapi';
 
 const output = './content/docs/api-reference/operations';
 const openapi = createOpenAPI({
-  input: ['./vendor/developer-docs/v0.6.0/source/openapi/v1.json'],
+  input: ['./vendor/public-contract/v0.6.1/source/openapi/v1.json'],
 });
 
 function toKebabCase(name) {
@@ -30,7 +30,7 @@ await generateFiles({
   name: operationFilename,
   meta: true,
   includeDescription: true,
-  addGeneratedComment: 'Generated from developer-docs v0.6.0. Do not edit by hand.',
+  addGeneratedComment: false,
 });
 
 console.log('generated release-bound OpenAPI operation pages');

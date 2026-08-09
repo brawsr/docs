@@ -9,8 +9,8 @@ does not contain an API proxy or credential-bearing playground.
 ## Source of truth
 
 Guides and the OpenAPI reference are bound to the private
-[`brawsr/developer-docs`](https://github.com/brawsr/developer-docs) `v0.6.0` release. Release assets
-and extracted source are vendored under `vendor/developer-docs/v0.6.0/`; the consumer lock pins:
+[`brawsr/developer-docs`](https://github.com/brawsr/developer-docs) `v0.6.1` release. Release assets
+and extracted source are stored under `vendor/public-contract/v0.6.1/`; the consumer lock pins:
 
 - release tag and URL;
 - source commit and tree;
@@ -19,8 +19,8 @@ and extracted source are vendored under `vendor/developer-docs/v0.6.0/`; the con
 - the complete extracted source inventory; and
 - the OpenAPI digest.
 
-Ordinary builds do not fetch private GitHub content. `npm run content:check` fails on any lock,
-manifest, asset, source-file, contract, or generated-page drift.
+Release inputs are verified locally from the vendored bundle. `npm run content:check` fails on any
+lock, manifest, asset, source-file, contract, or generated-page drift.
 
 ## Local development
 

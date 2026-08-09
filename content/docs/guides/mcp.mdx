@@ -3,8 +3,6 @@ title: MCP server
 description: Configure and operate the authenticated local stdio MCP integration.
 ---
 
-{/* Generated from developer-docs v0.6.0/MCP.md. Do not edit by hand. */}
-
 The v0.1 MCP integration is an authenticated local stdio process. It exposes
 sessions, checkpoints, rewind, fork, operation recovery, and explicit cleanup as
 tools backed by the same packaged TypeScript SDK.
@@ -16,16 +14,14 @@ BRAWSR_API_KEY=...
 BRAWSR_MCP_TIMEOUT_MS=30000  # optional
 ```
 
-The production endpoint, `https://api.brawsr.io`, is built in. The API key is
-the only required configuration. An explicit endpoint override is reserved for
-local development and self-hosted deployments; it is never read from a tool
-argument.
+The API key is the only required setting. The MCP server connects to brawsr
+automatically and never reads connection settings from tool arguments.
 
-Checkpoint, rewind, and fork are each one tool call. The server handles a direct
-result versus `202` polling internally. If its bounded wait expires, the
-structured error includes safe operation recovery fields; server work may still
-continue. Use `brawsr_get_operation` or `brawsr_wait_operation` rather than
-submitting a different mutation.
+Checkpoint, rewind, and fork are each one tool call and return a completed
+result. If the configured wait expires, the structured error includes operation
+recovery fields and the operation may still continue. Use
+`brawsr_get_operation` or `brawsr_wait_operation` rather than submitting a
+different mutation.
 
 Fork returns ordered peer children. An agent decides whether its workflow keeps
 all results or selects one, then calls `brawsr_close_sessions` explicitly. The
