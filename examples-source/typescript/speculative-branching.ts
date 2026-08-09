@@ -5,9 +5,16 @@ import type { ForkResult } from "@brawsr/sdk";
 import { closeSessionTree, configuration, markerKey } from "./common.js";
 
 const { brawsr, url } = configuration();
+const routes = [
+  { name: "primary", url },
+  {
+    name: "fallback",
+    url: process.env.BRAWSR_FALLBACK_URL ?? `${url}?route=fallback`,
+  },
+] as const;
 const session = await brawsr.createSession({
   ttlSeconds: 600,
-  displayLabel: "Speculative alternatives",
+  displayLabel: "Compare primary and fallback routes",
 });
 let forked: ForkResult | undefined;
 const browsers: Awaited<ReturnType<typeof chromium.connectOverCDP>>[] = [];
@@ -24,10 +31,10 @@ try {
   await sourcePage.evaluate(
     ([key, value]: readonly [string, string]) =>
       localStorage.setItem(key, value),
-    [markerKey, "prepared-for-alternatives"] as const,
+    [markerKey, "prepared-for-route-comparison"] as const,
   );
   const checkpoint = await brawsr.createCheckpoint(session.id, {
-    label: "before-alternatives",
+    label: "before-route-choice",
   });
   await sourcePage.evaluate(
     ([key, value]: readonly [string, string]) =>
@@ -35,10 +42,13 @@ try {
     [markerKey, "source-after-checkpoint"] as const,
   );
 
-  // The default organization quota allows the source plus two child sessions.
-  forked = await brawsr.fork(session.id, checkpoint, { n: 2 });
+  // Each route starts from the same prepared browser state. The source plus
+  // these two children fits the default three-session organization quota.
+  forked = await brawsr.fork(session.id, checkpoint, { n: routes.length });
   const alternatives = await Promise.all(
-    forked.children.map(async (child) => {
+    forked.children.map(async (child, index) => {
+      const route = routes[index];
+      if (!route) throw new Error(`branch ${child.branchIndex} has no route`);
       const connection = brawsr.connectCDP(child);
       const browser = await chromium.connectOverCDP(connection.endpointUrl, {
         headers: connection.headers,
@@ -50,22 +60,23 @@ try {
         (key: string) => localStorage.getItem(key),
         markerKey,
       );
-      if (inherited !== "prepared-for-alternatives")
+      if (inherited !== "prepared-for-route-comparison")
         throw new Error(`branch ${child.branchIndex} lost prepared state`);
-      await page.goto(`${url}?alternative=${child.branchIndex}`);
+      await page.goto(route.url);
+      const heading = (await page.locator("h1").first().textContent())?.trim();
       return {
         branch: child.branchIndex,
-        sessionId: child.sessionId,
-        inherited,
-        title: await page.title(),
+        route: route.name,
+        acceptable: Boolean(heading),
+        heading,
       };
     }),
   );
 
-  // Selection is application policy. brawsr returns peers and never chooses a winner.
-  const selected = alternatives.find((candidate) => candidate.title.length > 0);
-  if (!selected)
-    throw new Error("application selection found no useful result");
+  // Selection is application policy. Here the first route with the expected
+  // heading wins; a real workflow can apply its own validation or scoring.
+  const selected = alternatives.find((candidate) => candidate.acceptable);
+  if (!selected) throw new Error("neither route rendered the expected heading");
   console.log(JSON.stringify({ selected, evaluated: alternatives.length }));
 } finally {
   await Promise.allSettled(browsers.map((browser) => browser.close()));

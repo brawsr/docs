@@ -1,41 +1,41 @@
 ---
 title: Examples
-description: Executable checkpoint, rewind, and fork examples synchronized from the public brawsr examples repository.
+description: Learn checkpoint, rewind, and fork through small browser-automation stories.
 ---
 
-These examples are copied from the public [`brawsr/examples`](https://github.com/brawsr/examples)
-repository at one pinned commit. The displayed source, its SHA-256 hash, and the
-upstream file are checked together in CI, so the documentation cannot silently
-drift into a different implementation.
+The examples start with a situation your automation can actually encounter:
+a bad step you want to discard, several independent paths that need the same
+prepared browser, or two routes you want to evaluate without rebuilding state.
 
-Start with rewind in your preferred language, then move to fork and speculative
-branching. Every example chooses an application safe point, reconnects when
-browser handles become stale, and closes every session it creates.
+Each page explains the state transition first and shows only the code that
+drives it. The complete runnable programs live in
+[`brawsr/examples`](https://github.com/brawsr/examples).
+
+## Recover from a bad step
+
+Prepare a page, capture it, make a change, then return to the captured state.
+The TypeScript and Python stories also show why a rewind requires a fresh
+Playwright connection.
 
 <Cards>
-  <Card
-    title="Playwright rewind · TypeScript"
-    description="Checkpoint, change, rewind, reconnect, and verify."
-    href="/docs/examples/playwright-rewind-typescript"
-  />
-  <Card
-    title="Playwright rewind · Python"
-    description="The equivalent synchronous Python flow."
-    href="/docs/examples/playwright-rewind-python"
-  />
-  <Card
-    title="Playwright fork · TypeScript"
-    description="Verify ordered children inherited checkpointed state."
-    href="/docs/examples/playwright-fork-typescript"
-  />
-  <Card
-    title="Speculative branching"
-    description="Evaluate two branches and keep selection in application policy."
-    href="/docs/examples/speculative-branching"
-  />
+  <Card title="Rewind with TypeScript" description="Discard a later edit and verify the restored value." href="/docs/examples/playwright-rewind-typescript" />
+  <Card title="Rewind with Python" description="The same recovery story with the synchronous Python SDK." href="/docs/examples/playwright-rewind-python" />
 </Cards>
 
-<Callout type="warn" title="Recovery has an external boundary">
-  Rewind and fork restore captured browser state. They cannot undo an effect a
-  website or another external system already accepted.
+## Start several paths from one state
+
+Checkpoint a prepared browser once, then create isolated child sessions that
+all inherit that state. Use a regular fork when you need every branch; use
+speculative branching when your application will evaluate alternatives and
+select one.
+
+<Cards>
+  <Card title="Fork with Playwright" description="Create ordered child sessions and verify their inherited state." href="/docs/examples/playwright-fork-typescript" />
+  <Card title="Compare primary and fallback routes" description="Evaluate two routes concurrently and select with application policy." href="/docs/examples/speculative-branching" />
+</Cards>
+
+<Callout type="warn" title="The recovery boundary still applies">
+  Browser state can be restored or branched. An effect already accepted by a
+  website, payment processor, or another external system cannot be undone by
+  rewind.
 </Callout>
