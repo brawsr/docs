@@ -29,7 +29,7 @@ export default function HomePage() {
         <div className="docs-hero-copy">
           <p className="docs-meta-kicker">DEVELOPER DOCUMENTATION / V0.6</p>
           <h1 id="docs-hero-title">
-            <span>Build from a</span>
+            <span>Build from a </span>
             <span className="docs-hero-accent">known browser state.</span>
           </h1>
         </div>
