@@ -91,6 +91,26 @@ button:focus-visible {
   outline-offset: 3px;
 }
 
+.external-link-marker {
+  display: inline-block;
+  height: 0.82em;
+  margin-left: 0.2em;
+  position: relative;
+  top: 0.08em;
+  transition: transform 150ms ease;
+  width: 0.82em;
+}
+
+a:hover > .external-link-marker {
+  transform: translate(1px, -1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .external-link-marker {
+    transition: none;
+  }
+}
+
 .brand-lockup {
   align-items: center;
   display: inline-flex;

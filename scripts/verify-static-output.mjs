@@ -125,6 +125,16 @@ invariant(
 );
 invariant(!llms.includes('Hello World'), 'Template placeholder leaked into llms-full.txt');
 
+const speculativeExample = await readFile(
+  path.join(outputRoot, 'docs/examples/speculative-branching/index.html'),
+  'utf8',
+);
+invariant(
+  speculativeExample.includes('data-external-link="true"') &&
+    speculativeExample.includes('external-link-marker'),
+  'External documentation links are missing their visual marker',
+);
+
 const customerArtifacts = outputFiles.filter(
   (file) => file.endsWith('.html') || file.endsWith('llms.txt') || file.endsWith('llms-full.txt'),
 );

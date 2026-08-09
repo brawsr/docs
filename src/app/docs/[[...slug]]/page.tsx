@@ -13,6 +13,7 @@ import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { openapi } from '@/lib/openapi';
 import { APIPage } from '@/components/api-page';
+import { ExternalLink } from '@/components/external-link';
 import type { ComponentProps } from 'react';
 
 type APIPageProps = ComponentProps<typeof APIPage>;
@@ -24,6 +25,7 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
+  const RelativeLink = createRelativeLink(source, page);
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
@@ -39,7 +41,14 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
         <MDX
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
+            a: (linkProps: ComponentProps<'a'>) => {
+              const href = typeof linkProps.href === 'string' ? linkProps.href : '';
+              return href.startsWith('http://') || href.startsWith('https://') ? (
+                <ExternalLink {...linkProps} />
+              ) : (
+                <RelativeLink {...linkProps} />
+              );
+            },
             OpenAPIPage: async (props: APIPageProps) => (
               <APIPage {...await openapi.preloadOpenAPIPage(page)} {...props} />
             ),
