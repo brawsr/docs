@@ -44,6 +44,7 @@ const required = [
   'docs/guides/recovery-limitations/index.html',
   'docs/guides/mcp/index.html',
   'docs/api-reference/index.html',
+  'icon.svg',
   'llms.txt',
   'llms-full.txt',
 ];
@@ -131,8 +132,19 @@ const speculativeExample = await readFile(
 );
 invariant(
   speculativeExample.includes('data-external-link="true"') &&
-    speculativeExample.includes('external-link-marker'),
-  'External documentation links are missing their visual marker',
+    speculativeExample.includes('external-link-marker') &&
+    speculativeExample.includes('target="_blank"') &&
+    speculativeExample.includes('rel="noopener noreferrer"') &&
+    speculativeExample.includes('opens in a new tab'),
+  'External documentation links are missing their marker or safe new-tab behavior',
+);
+
+const faviconSource = await readFile(path.join(repoRoot, 'src/app/icon.svg'), 'utf8');
+const faviconOutput = await readFile(path.join(outputRoot, 'icon.svg'), 'utf8');
+invariant(faviconOutput === faviconSource, 'Static output is not using the canonical brawsr favicon');
+invariant(
+  faviconOutput.includes('#1763FF') && !faviconOutput.includes('state lineage'),
+  'Deprecated lineage artwork returned to the favicon',
 );
 
 const customerArtifacts = outputFiles.filter(

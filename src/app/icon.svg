@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-labelledby="title">
-  <title id="title">brawsr state lineage</title>
-  <rect width="32" height="32" rx="6" fill="#142033"/>
-  <path d="M7 10h8v6h5v-4h5M20 16v5h5" fill="none" stroke="#7190ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="7" cy="10" r="2" fill="#ffffff"/>
-  <circle cx="15" cy="16" r="2" fill="#087e8b"/>
-  <circle cx="25" cy="12" r="2" fill="#a855c7"/>
-  <circle cx="25" cy="21" r="2" fill="#a855c7"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <style>
+    .letter { fill: #101217; }
+    @media (prefers-color-scheme: dark) { .letter { fill: #f6f8fb; } }
+  </style>
+  <path class="letter" fill-rule="evenodd" d="M8 6h11v19.5C22.5 22.4 27 21 32 21c11 0 18 6.8 18 17.5S42.5 56 31.5 56c-5.2 0-9.8-1.6-13-4.9V55H8V6Zm23 24c-7.1 0-12 3.2-12 8.5S23.9 47 31 47c6.2 0 9.5-3.2 9.5-8.5S37.2 30 31 30Z"/>
+  <circle cx="56" cy="51" r="5" fill="#1763FF"/>
 </svg>
