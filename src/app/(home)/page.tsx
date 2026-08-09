@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { StateLineage } from '@/components/state-lineage';
+import { RecoveryDemo } from '@/components/recovery-demo';
 
 const paths = [
   {
@@ -29,14 +29,14 @@ export default function HomePage() {
         <div className="docs-hero-copy">
           <p className="docs-meta-kicker">DEVELOPER DOCUMENTATION / V0.6</p>
           <h1 id="docs-hero-title">
-            <span>Build from a </span>
-            <span className="docs-hero-accent">known browser state.</span>
+            <span>Your browser, </span>
+            <span className="docs-hero-accent">at any point in time.</span>
           </h1>
         </div>
         <div className="docs-hero-intro">
           <p>
-            Create a session. Checkpoint before the risky step. Rewind or fork from the same safe
-            point without starting over.
+            Checkpoint the live session before a risky action. If the workflow breaks, return to
+            the state that worked.
           </p>
           <div className="hero-actions">
             <Link className="hero-button hero-button-primary" href="/docs/get-started/quickstart">
@@ -50,7 +50,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <StateLineage compact />
+      <RecoveryDemo />
 
       <section className="docs-paths" aria-labelledby="docs-paths-title">
         <header className="docs-paths-header">

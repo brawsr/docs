@@ -47,9 +47,10 @@ for (const relative of required) {
 }
 
 const home = await readFile(path.join(outputRoot, 'index.html'), 'utf8');
-invariant(home.includes('Build from a'), 'Homepage is missing the branded hero headline');
-invariant(home.includes('known browser state.'), 'Homepage is missing the branded hero accent');
-invariant(home.includes('RECOVERY TRACE'), 'Homepage is missing the recovery trace instrument');
+invariant(home.includes('Your browser,'), 'Homepage is missing the landing-derived hero headline');
+invariant(home.includes('at any point in time.'), 'Homepage is missing the branded hero accent');
+invariant(home.includes('LIVE STATE / 03'), 'Homepage is missing the live recovery demo');
+invariant(home.includes('RECOVERY BOUNDARY'), 'Homepage is missing the recovery boundary');
 invariant(home.includes('brawsr'), 'Homepage is missing the brawsr wordmark');
 invariant(
   !home.includes('Recover, retry, and branch with intent.'),
