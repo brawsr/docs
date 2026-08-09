@@ -142,9 +142,11 @@ The server exposes:
 - operation get and wait tools; and
 - bounded multi-session cleanup.
 
-Checkpoint, rewind, and fork are each one tool call and return a completed
-result. If the configured wait expires, the structured error includes operation
-recovery fields and the operation may still continue. Use
+Checkpoint, rewind, and fork are each one tool call. Checkpoint and fork return
+completed results. Rewind can return a CDP-usable result before bounded
+post-restore work is terminal; wait for its operation before another lifecycle
+mutation on that session. If the configured wait expires, the structured error
+includes operation recovery fields and the operation may still continue. Use
 `brawsr_get_operation` or `brawsr_wait_operation` rather than submitting a new
 mutation.
 

@@ -35,8 +35,10 @@ uses the same not-found response. Never put an API key in a URL.
 ## Recommended SDK flow
 
 The TypeScript and Python SDKs expose one high-level call per mutation. A
-checkpoint or rewind may complete immediately or asynchronously; the SDK hides
-that transport detail and returns only the terminal result.
+checkpoint returns when its captured state can be used. Rewind returns when the
+restored browser is CDP-usable, which can be before bounded post-restore work is
+terminal. Reconnect immediately for browser work; wait with `waitRewind` or
+`wait_rewind` before the next lifecycle mutation on that session.
 
 ```ts
 import { BrawsrClient } from "@brawsr/sdk";
@@ -167,6 +169,12 @@ Executable stories live in:
 - [`brawsr/sdk-typescript`](https://github.com/brawsr/sdk-typescript); and
 - [`brawsr/sdk-python`](https://github.com/brawsr/sdk-python).
 
+Four source-locked examples are also rendered directly in these docs:
+[TypeScript rewind](/docs/examples/playwright-rewind-typescript),
+[Python rewind](/docs/examples/playwright-rewind-python),
+[TypeScript fork](/docs/examples/playwright-fork-typescript), and
+[speculative branching](/docs/examples/speculative-branching).
+
 ## Checkpoint contract
 
 Create checkpoints only at an explicit application safe point between actions.
@@ -232,9 +240,9 @@ rather than returning an unusable browser session.
 
 Published checkpoint latency measures mutation admission through the terminal
 checkpoint result. Published rewind latency measures rewind admission through
-the terminal live session result; browser-library reconnection is reported
-separately. Service targets apply only when explicitly stated in the brawsr
-service documentation.
+the CDP-usable live session result; terminal post-restore work and
+browser-library reconnection are separate. Service targets apply only when
+explicitly stated in the brawsr service documentation.
 
 Retention and quota are project policy. References prevent deletion while a
 checkpoint remains a base for another retained state. Public logical size is

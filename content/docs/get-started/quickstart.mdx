@@ -1,123 +1,70 @@
 ---
 title: Quickstart
-description: Create a session, checkpoint it, rewind, and reconnect over CDP.
+description: Create a session, checkpoint prepared state, rewind, and reconnect over CDP.
 ---
 
-This flow captures a safe point, changes the browser state, rewinds, and then
-reconnects to the restored browser. Keep `BRAWSR_API_KEY` in your server-side
-environment; do not embed it in browser code or a public bundle.
+The shortest useful brawsr workflow is: prepare browser state, checkpoint at a
+safe point between actions, make a later change, rewind, and reconnect to the
+restored browser. Keep `BRAWSR_API_KEY` in your server-side environment; never
+embed it in browser code or a public bundle.
 
-## TypeScript
+## Run an exact example
 
-Install the SDK and Playwright Core:
-
-```bash
-npm install @brawsr/sdk playwright-core
-export BRAWSR_API_KEY="brawsr_..."
-```
-
-Run this as a server-side TypeScript program:
-
-```ts
-import { BrawsrClient } from '@brawsr/sdk';
-import { chromium } from 'playwright-core';
-
-const brawsr = new BrawsrClient();
-const session = await brawsr.createSession();
-
-try {
-  const connection = brawsr.connectCDP(session);
-  const browser = await chromium.connectOverCDP(connection.endpointUrl, {
-    headers: connection.headers,
-  });
-  const context = browser.contexts()[0];
-  const page = context.pages()[0] ?? await context.newPage();
-
-  await page.goto('https://example.com');
-  const checkpoint = await brawsr.createCheckpoint(session.id, {
-    label: 'example-loaded',
-  });
-
-  // This browser handle becomes stale after rewind.
-  await page.goto('https://example.com/?state=discarded');
-  const restored = await brawsr.rewind(session.id, checkpoint);
-
-  const restoredConnection = brawsr.connectCDP(restored);
-  const restoredBrowser = await chromium.connectOverCDP(
-    restoredConnection.endpointUrl,
-    { headers: restoredConnection.headers },
-  );
-  const restoredPage = restoredBrowser.contexts()[0].pages()[0];
-
-  console.log(await restoredPage.title(), restoredPage.url());
-} finally {
-  await brawsr.closeSession(session.id);
-}
-```
-
-## Python
-
-Install the SDK and Playwright:
-
-```bash
-python -m pip install brawsr playwright
-export BRAWSR_API_KEY="brawsr_..."
-```
-
-Run the equivalent synchronous Python program:
-
-```python
-from brawsr import BrawsrClient
-from playwright.sync_api import sync_playwright
-
-with BrawsrClient() as brawsr, sync_playwright() as playwright:
-    session = brawsr.create_session()
-
-    try:
-        connection = brawsr.connect_cdp(session)
-        browser = playwright.chromium.connect_over_cdp(
-            connection.endpoint_url,
-            headers=connection.headers,
-        )
-        context = browser.contexts[0]
-        page = context.pages[0] if context.pages else context.new_page()
-
-        page.goto("https://example.com")
-        checkpoint = brawsr.create_checkpoint(
-            session.id,
-            label="example-loaded",
-        )
-
-        # This browser handle becomes stale after rewind.
-        page.goto("https://example.com/?state=discarded")
-        restored = brawsr.rewind(session.id, checkpoint)
-
-        restored_connection = brawsr.connect_cdp(restored)
-        restored_browser = playwright.chromium.connect_over_cdp(
-            restored_connection.endpoint_url,
-            headers=restored_connection.headers,
-        )
-        restored_page = restored_browser.contexts[0].pages[0]
-
-        print(restored_page.title(), restored_page.url)
-    finally:
-        brawsr.close_session(session.id)
-```
-
-## Why reconnect after rewind?
-
-A successful rewind replaces the browser process and closes the old CDP
-transport. Reconnect with the returned endpoint and rediscover contexts, pages,
-frames, elements, workers, requests, and remote objects. Do not retain
-Playwright or Puppeteer handles across rewind.
-
-The SDK returns the terminal mutation result whether the API completed the work
-immediately or through a durable operation. Close every session your workflow
-creates, including fork children you decide not to keep.
+The public examples below are executable source, synchronized from one pinned
+[`brawsr/examples`](https://github.com/brawsr/examples) commit and verified by
+file hash in CI.
 
 <Cards>
-  <Card title="Install" href="/docs/get-started/installation" />
+  <Card
+    title="TypeScript + Playwright"
+    description="Checkpoint, rewind, reconnect, and verify restored state."
+    href="/docs/examples/playwright-rewind-typescript"
+  />
+  <Card
+    title="Python + Playwright"
+    description="Run the equivalent synchronous Python flow."
+    href="/docs/examples/playwright-rewind-python"
+  />
+</Cards>
+
+## What the example proves
+
+1. A session exposes an authenticated CDP connection for Playwright.
+2. Browser state is prepared before the checkpoint, at an application-chosen
+   safe point.
+3. State changed after the checkpoint is discarded by rewind.
+4. Rewind replaces the browser process, so the program reconnects and
+   rediscovers its page instead of reusing stale handles.
+5. The restored page contains the checkpointed value.
+6. The program waits for terminal rewind completion before close, because close
+   is another lifecycle mutation on the same session.
+
+<Callout type="info" title="Usable before terminal">
+  A rewind result can be CDP-usable while bounded post-restore work is still
+  completing. Reconnect immediately if you only need browser work. Before
+  checkpointing, rewinding, forking, or closing that session again, wait with
+  `waitRewind` in TypeScript or `wait_rewind` in Python using the returned
+  operation ID.
+</Callout>
+
+## Try a branch
+
+Once rewind is clear, fork the same captured state into ordered peer sessions.
+The fork example verifies every child inherited the checkpointed value; the
+speculative example keeps result selection in your application instead of
+inventing a brawsr winner.
+
+<Cards>
+  <Card
+    title="Playwright fork"
+    description="Create and verify ordered child sessions."
+    href="/docs/examples/playwright-fork-typescript"
+  />
+  <Card
+    title="Speculative branching"
+    description="Evaluate two inherited branches concurrently."
+    href="/docs/examples/speculative-branching"
+  />
   <Card title="API and SDK guide" href="/docs/guides/api-and-sdk" />
   <Card title="Recovery limitations" href="/docs/guides/recovery-limitations" />
-  <Card title="API reference" href="/docs/api-reference" />
 </Cards>

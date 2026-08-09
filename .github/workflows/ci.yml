@@ -20,6 +20,14 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - id: examples-lock
+        run: node -p "'commit=' + require('./examples.lock.json').commit" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          repository: brawsr/examples
+          ref: ${{ steps.examples-lock.outputs.commit }}
+          path: .upstream/examples
+      - run: npm run examples:source-check -- --source .upstream/examples
       - uses: actions/upload-artifact@v7
         with:
           name: static-docs

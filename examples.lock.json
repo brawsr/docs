@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "repository": "brawsr/examples",
+  "commit": "b67cb937f0f494f676910c42e3ddaaf33b4d6a49",
+  "pages": [
+    {
+      "slug": "playwright-rewind-typescript",
+      "title": "Playwright rewind · TypeScript",
+      "description": "Prepare browser state, checkpoint it, rewind, reconnect, and verify the restored value with TypeScript.",
+      "intro": "This self-contained example makes a post-checkpoint edit, rewinds it, reconnects because the old Playwright handles are stale, and verifies the captured value.",
+      "install": "npm ci\nexport BRAWSR_API_KEY=\"brawsr_...\"",
+      "run": "npm exec -- tsx typescript/playwright-rewind.ts",
+      "success": "Successful output contains `\"rewound\":true` and `\"value\":\"checkpointed\"`.",
+      "sources": [
+        {
+          "path": "typescript/playwright-rewind.ts",
+          "language": "ts",
+          "sha256": "24f53e2ec9f8b3b7f832c75b1a4426b7453f72c4879209d9186026c1e71a93f5"
+        }
+      ]
+    },
+    {
+      "slug": "playwright-rewind-python",
+      "title": "Playwright rewind · Python",
+      "description": "Prepare browser state, checkpoint it, rewind, reconnect, and verify the restored value with Python.",
+      "intro": "This is the synchronous Python equivalent of the TypeScript rewind flow, including the terminal operation wait before the later close mutation.",
+      "install": "uv sync --locked --python 3.11\nexport BRAWSR_API_KEY=\"brawsr_...\"",
+      "run": "uv run python python/playwright_rewind.py",
+      "success": "Successful output contains `\"rewound\": true` and `\"value\": \"checkpointed\"`.",
+      "sources": [
+        {
+          "path": "python/playwright_rewind.py",
+          "language": "python",
+          "sha256": "48de07ba1b2af06272299b40f1fa36b57562bc83e82ccc59325d7f2b464b1ef2"
+        }
+      ]
+    },
+    {
+      "slug": "playwright-fork-typescript",
+      "title": "Playwright fork · TypeScript",
+      "description": "Fork ordered Playwright branches from checkpointed state and verify every child inherited it.",
+      "intro": "The source prepares state before the checkpoint, changes the source afterward, forks one or more peer sessions, and verifies that every child received the checkpointed value.",
+      "install": "npm ci\nexport BRAWSR_API_KEY=\"brawsr_...\"",
+      "run": "BRAWSR_FORK_N=1 npm exec -- tsx typescript/playwright-fork.ts",
+      "success": "The default three-session organization limit supports `BRAWSR_FORK_N=1` or `2`. Fork-10 requires capacity for the source plus ten children.",
+      "sources": [
+        {
+          "path": "typescript/playwright-fork.ts",
+          "language": "ts",
+          "sha256": "ccd304592ecd17c4104c7cbb4be614a6ad9e998249690ed2bc43ca3f31944ab2"
+        },
+        {
+          "path": "typescript/common.ts",
+          "language": "ts",
+          "sha256": "b38abee53ed5f31e7acaa4407f79335d91fb45f84826b8b18f3aed364acd8dd8"
+        }
+      ]
+    },
+    {
+      "slug": "speculative-branching",
+      "title": "Speculative branching",
+      "description": "Evaluate two inherited browser branches concurrently and keep result selection in application policy.",
+      "intro": "This pattern uses the default three-session limit: one source and two children. It verifies inherited state before evaluating both alternatives, then lets application code select a result.",
+      "install": "npm ci\nexport BRAWSR_API_KEY=\"brawsr_...\"",
+      "run": "npm exec -- tsx typescript/speculative-branching.ts",
+      "success": "The output identifies the selected branch and reports that two alternatives were evaluated. brawsr does not choose a winner or merge branch state.",
+      "sources": [
+        {
+          "path": "typescript/speculative-branching.ts",
+          "language": "ts",
+          "sha256": "1242b63daaabf89abadeab1ce92150baf52cd2a4d2dfcc490968e6d9f7904e0c"
+        },
+        {
+          "path": "typescript/common.ts",
+          "language": "ts",
+          "sha256": "b38abee53ed5f31e7acaa4407f79335d91fb45f84826b8b18f3aed364acd8dd8"
+        }
+      ]
+    }
+  ]
+}

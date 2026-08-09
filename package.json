@@ -10,9 +10,12 @@
   "scripts": {
     "build": "npm run content:check && next build --webpack && npm run output:check",
     "contract:check": "PYTHONDONTWRITEBYTECODE=1 python3 contract/scripts/verify_contract.py && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s contract/tests -p 'test_*.py'",
-    "content:check": "npm run contract:check && node scripts/generate-openapi.mjs --check && node scripts/verify-customer-copy.mjs",
+    "content:check": "npm run contract:check && npm run examples:check && node scripts/generate-openapi.mjs --check && node scripts/verify-customer-copy.mjs",
     "content:generate": "node scripts/generate-openapi.mjs",
     "dev": "next dev",
+    "examples:check": "node scripts/sync-examples.mjs --check",
+    "examples:source-check": "node scripts/sync-examples.mjs --check",
+    "examples:sync": "node scripts/sync-examples.mjs --write",
     "lint": "eslint .",
     "output:check": "node scripts/verify-static-output.mjs",
     "start": "serve out",

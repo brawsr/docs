@@ -15,8 +15,21 @@ fork, session workspace, and recovery boundaries.
 
 Customer guides under `content/docs/guides/` are authored in this repository.
 API operation pages are generated from `contract/openapi/v1.json`.
-`npm run content:check` fails on contract, customer-copy, or generated-page
-drift.
+Selected executable examples are synchronized from the exact `brawsr/examples`
+commit in `examples.lock.json`; their snapshots, rendered pages, and hashes are
+generated together. `npm run content:check` fails on contract, customer-copy,
+example, or generated-page drift.
+
+To update the displayed examples after publishing the examples repository:
+
+```bash
+npm run examples:sync -- --source ../brawsr-examples
+npm run examples:source-check -- --source ../brawsr-examples
+```
+
+Commit the updated lock, `examples-source/` snapshots, and generated
+`content/docs/examples/` pages together. CI checks out the locked upstream
+commit and compares its files byte for byte.
 
 ## Local development
 
@@ -45,6 +58,8 @@ provides deterministic behavior in the current Next.js 16 toolchain.
 
 - Edit `content/docs/guides/` directly; do not edit
   `content/docs/api-reference/operations/` by hand.
+- Edit executable example code in `brawsr/examples`; do not hand-edit generated
+  pages or files under `examples-source/`.
 - Do not add an OpenAPI proxy or collect API keys in this static site.
 - Do not describe private checkpointing internals in customer-facing content.
 - Do not imply that rewind reverses remote-server effects.

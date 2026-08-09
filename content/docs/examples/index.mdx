@@ -1,0 +1,41 @@
+---
+title: Examples
+description: Executable checkpoint, rewind, and fork examples synchronized from the public brawsr examples repository.
+---
+
+These examples are copied from the public [`brawsr/examples`](https://github.com/brawsr/examples)
+repository at one pinned commit. The displayed source, its SHA-256 hash, and the
+upstream file are checked together in CI, so the documentation cannot silently
+drift into a different implementation.
+
+Start with rewind in your preferred language, then move to fork and speculative
+branching. Every example chooses an application safe point, reconnects when
+browser handles become stale, and closes every session it creates.
+
+<Cards>
+  <Card
+    title="Playwright rewind · TypeScript"
+    description="Checkpoint, change, rewind, reconnect, and verify."
+    href="/docs/examples/playwright-rewind-typescript"
+  />
+  <Card
+    title="Playwright rewind · Python"
+    description="The equivalent synchronous Python flow."
+    href="/docs/examples/playwright-rewind-python"
+  />
+  <Card
+    title="Playwright fork · TypeScript"
+    description="Verify ordered children inherited checkpointed state."
+    href="/docs/examples/playwright-fork-typescript"
+  />
+  <Card
+    title="Speculative branching"
+    description="Evaluate two branches and keep selection in application policy."
+    href="/docs/examples/speculative-branching"
+  />
+</Cards>
+
+<Callout type="warn" title="Recovery has an external boundary">
+  Rewind and fork restore captured browser state. They cannot undo an effect a
+  website or another external system already accepted.
+</Callout>
