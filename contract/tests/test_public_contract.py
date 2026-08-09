@@ -6,23 +6,25 @@ import unittest
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
+CONTRACT_ROOT = REPO_ROOT / "contract"
+GUIDES_ROOT = REPO_ROOT / "content" / "docs" / "guides"
 MARKDOWN_LINK = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 
 
 class PublicContractTest(unittest.TestCase):
     def contract(self) -> dict:
-        return json.loads((ROOT / "openapi" / "v1.json").read_text())
+        return json.loads((CONTRACT_ROOT / "openapi" / "v1.json").read_text())
 
     def test_relative_links_resolve(self) -> None:
         for document in (
-            ROOT / "README.md",
-            ROOT / "API.md",
-            ROOT / "LIMITATIONS.md",
-            ROOT / "MCP.md",
+            REPO_ROOT / "README.md",
+            GUIDES_ROOT / "api-and-sdk.mdx",
+            GUIDES_ROOT / "recovery-limitations.mdx",
+            GUIDES_ROOT / "mcp.mdx",
         ):
             for target in MARKDOWN_LINK.findall(document.read_text()):
-                if target.startswith(("http://", "https://", "mailto:", "#")):
+                if target.startswith(("http://", "https://", "mailto:", "#", "/")):
                     continue
                 relative = target.split("#", 1)[0]
                 with self.subTest(document=document.name, target=target):
@@ -121,7 +123,7 @@ class PublicContractTest(unittest.TestCase):
             100,
         )
 
-        customer_docs = (ROOT / "API.md").read_text().lower()
+        customer_docs = (GUIDES_ROOT / "api-and-sdk.mdx").read_text().lower()
         for forbidden in (
             "worker incarnation",
             "snapshot pack",
@@ -134,7 +136,7 @@ class PublicContractTest(unittest.TestCase):
                 self.assertNotIn(forbidden, customer_docs)
 
     def test_recovery_limitations_remain_explicit(self) -> None:
-        limitations = (ROOT / "LIMITATIONS.md").read_text().lower()
+        limitations = (GUIDES_ROOT / "recovery-limitations.mdx").read_text().lower()
         for required in (
             "remote server effects are not rewound",
             "browser-library objects become stale",
@@ -148,13 +150,9 @@ class PublicContractTest(unittest.TestCase):
         contract = self.contract()
         self.assertEqual(contract["servers"], [{"url": "https://api.brawsr.io"}])
 
-        readme = (ROOT / "README.md").read_text()
-        self.assertTrue(
-            readme.startswith(
-                "# brawsr developer documentation\n\nThe public API contract"
-            )
-        )
-        mcp_guide = (ROOT / "MCP.md").read_text()
+        readme = (REPO_ROOT / "README.md").read_text()
+        self.assertTrue(readme.startswith("# brawsr docs\n"))
+        mcp_guide = (GUIDES_ROOT / "mcp.mdx").read_text()
         self.assertIn("connects to brawsr automatically", " ".join(mcp_guide.split()))
         self.assertNotIn("production endpoint", mcp_guide.lower())
         self.assertNotIn("built in", mcp_guide.lower())

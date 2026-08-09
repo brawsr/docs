@@ -3,7 +3,7 @@ title: Update a session display label
 full: true
 _openapi:
   preload:
-    - ./vendor/public-contract/v0.6.1/source/openapi/v1.json
+    - ./contract/openapi/v1.json
   method: PATCH
   webhook: false
   toc: []
@@ -21,7 +21,7 @@ export default function Layout(props) {
   return (
     <>
       {props.children}
-      <Comp document="./vendor/public-contract/v0.6.1/source/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}","method":"patch"}]} showDescription />
+      <Comp document="./contract/openapi/v1.json" operations={[{"path":"/v1/sessions/{session_id}","method":"patch"}]} showDescription />
     </>
   );
 }

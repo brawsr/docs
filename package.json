@@ -2,14 +2,16 @@
   "name": "@brawsr/docs",
   "version": "0.1.0",
   "private": true,
+  "license": "Apache-2.0",
   "engines": {
     "node": "22.23.2"
   },
   "packageManager": "npm@11.8.0",
   "scripts": {
     "build": "npm run content:check && next build --webpack && npm run output:check",
-    "content:check": "node scripts/verify-developer-docs.mjs && npm run content:generate && node scripts/verify-customer-copy.mjs && git diff --exit-code -- content/docs/api-reference/operations content/docs/guides",
-    "content:generate": "node scripts/sync-release-guides.mjs && node scripts/generate-openapi.mjs",
+    "contract:check": "PYTHONDONTWRITEBYTECODE=1 python3 contract/scripts/verify_contract.py && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s contract/tests -p 'test_*.py'",
+    "content:check": "npm run contract:check && node scripts/generate-openapi.mjs --check && node scripts/verify-customer-copy.mjs",
+    "content:generate": "node scripts/generate-openapi.mjs",
     "dev": "next dev",
     "lint": "eslint .",
     "output:check": "node scripts/verify-static-output.mjs",

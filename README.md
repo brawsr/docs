@@ -1,6 +1,7 @@
 # brawsr docs
 
-The private source repository for brawsr's public developer documentation.
+The public source repository and contract authority for brawsr's developer
+documentation.
 
 The site is a static Next.js 16/Fumadocs build with local search, generated OpenAPI operation
 pages, per-page Markdown, `llms.txt`, and `llms-full.txt`. It does not require a server runtime and
@@ -8,19 +9,14 @@ does not contain an API proxy or credential-bearing playground.
 
 ## Source of truth
 
-Guides and the OpenAPI reference are bound to the private
-[`brawsr/developer-docs`](https://github.com/brawsr/developer-docs) `v0.6.1` release. Release assets
-and extracted source are stored under `vendor/public-contract/v0.6.1/`; the consumer lock pins:
+The versioned public API contract lives in [`contract/`](contract/). Its lock
+pins the OpenAPI digest, and its tests protect the public checkpoint, rewind,
+fork, session workspace, and recovery boundaries.
 
-- release tag and URL;
-- source commit and tree;
-- verified CI run;
-- release asset digests;
-- the complete extracted source inventory; and
-- the OpenAPI digest.
-
-Release inputs are verified locally from the vendored bundle. `npm run content:check` fails on any
-lock, manifest, asset, source-file, contract, or generated-page drift.
+Customer guides under `content/docs/guides/` are authored in this repository.
+API operation pages are generated from `contract/openapi/v1.json`.
+`npm run content:check` fails on contract, customer-copy, or generated-page
+drift.
 
 ## Local development
 
@@ -37,16 +33,18 @@ npm run dev
 npm test
 ```
 
-The test gate verifies the vendored release, regenerates release-bound content, checks for a clean
-generated diff, type-checks, lints, exports the static site, validates representative outputs and
-all 16 API operations, checks internal links, and confirms the static search and LLM artifacts.
+The test gate verifies the public contract, regenerates API reference content,
+checks for a clean generated diff, type-checks, lints, exports the static site,
+validates representative outputs and all 16 API operations, checks internal
+links, and confirms the static search and LLM artifacts.
 
 `next build --webpack` is intentional: the Fumadocs MDX macro uses build-time loaders and Webpack
 provides deterministic behavior in the current Next.js 16 toolchain.
 
 ## Content rules
 
-- Do not edit `content/docs/guides/` or `content/docs/api-reference/operations/` by hand.
+- Edit `content/docs/guides/` directly; do not edit
+  `content/docs/api-reference/operations/` by hand.
 - Do not add an OpenAPI proxy or collect API keys in this static site.
 - Do not describe private checkpointing internals in customer-facing content.
 - Do not imply that rewind reverses remote-server effects.
