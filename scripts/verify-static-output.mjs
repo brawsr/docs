@@ -32,6 +32,7 @@ function invariant(condition, message) {
 const required = [
   'index.html',
   'docs/index.html',
+  'docs/get-started/installation/index.html',
   'docs/get-started/quickstart/index.html',
   'docs/concepts/state-lineage/index.html',
   'docs/guides/api-and-sdk/index.html',
@@ -110,6 +111,9 @@ invariant(broken.length === 0, `Broken internal links:\n${broken.slice(0, 30).jo
 
 const llms = await readFile(path.join(outputRoot, 'llms-full.txt'), 'utf8');
 invariant(llms.includes('Recovery limitations'), 'llms-full.txt is missing release-bound guides');
+invariant(llms.includes('@brawsr/sdk'), 'llms-full.txt is missing the TypeScript SDK package');
+invariant(llms.includes('python -m pip install brawsr'), 'llms-full.txt is missing Python installation');
+invariant(llms.includes('@brawsr/mcp-server@0.1.0'), 'llms-full.txt is missing MCP installation');
 invariant(!llms.includes('Hello World'), 'Template placeholder leaked into llms-full.txt');
 
 const customerArtifacts = outputFiles.filter(

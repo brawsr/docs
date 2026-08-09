@@ -3,24 +3,20 @@ title: Quickstart
 description: Create a session, checkpoint it, rewind, and reconnect over CDP.
 ---
 
-This flow uses the TypeScript SDK and Playwright. Keep `BRAWSR_API_KEY` in your server-side
+This flow captures a safe point, changes the browser state, rewinds, and then
+reconnects to the restored browser. Keep `BRAWSR_API_KEY` in your server-side
 environment; do not embed it in browser code or a public bundle.
 
-## 1. Install the clients
+## TypeScript
+
+Install the SDK and Playwright Core:
 
 ```bash
 npm install @brawsr/sdk playwright-core
-```
-
-## 2. Set your API key
-
-```bash
 export BRAWSR_API_KEY="brawsr_..."
 ```
 
-Every REST and WebSocket request is authenticated. Never put the API key in a URL.
-
-## 3. Create a recoverable session
+Run this as a server-side TypeScript program:
 
 ```ts
 import { BrawsrClient } from '@brawsr/sdk';
@@ -29,37 +25,98 @@ import { chromium } from 'playwright-core';
 const brawsr = new BrawsrClient();
 const session = await brawsr.createSession();
 
-const checkpoint = await brawsr.createCheckpoint(session.id, {
-  label: 'before-submit',
-});
+try {
+  const connection = brawsr.connectCDP(session);
+  const browser = await chromium.connectOverCDP(connection.endpointUrl, {
+    headers: connection.headers,
+  });
+  const context = browser.contexts()[0];
+  const page = context.pages()[0] ?? await context.newPage();
 
-// Attempt an action after the explicit safe point.
-const restored = await brawsr.rewind(session.id, checkpoint);
+  await page.goto('https://example.com');
+  const checkpoint = await brawsr.createCheckpoint(session.id, {
+    label: 'example-loaded',
+  });
 
-const connection = brawsr.connectCDP(restored);
-const browser = await chromium.connectOverCDP(connection.endpointUrl, {
-  headers: connection.headers,
-});
+  // This browser handle becomes stale after rewind.
+  await page.goto('https://example.com/?state=discarded');
+  const restored = await brawsr.rewind(session.id, checkpoint);
 
-const context = browser.contexts()[0];
-const pages = context.pages();
+  const restoredConnection = brawsr.connectCDP(restored);
+  const restoredBrowser = await chromium.connectOverCDP(
+    restoredConnection.endpointUrl,
+    { headers: restoredConnection.headers },
+  );
+  const restoredPage = restoredBrowser.contexts()[0].pages()[0];
+
+  console.log(await restoredPage.title(), restoredPage.url());
+} finally {
+  await brawsr.closeSession(session.id);
+}
 ```
 
-The SDK returns only the terminal result whether the underlying mutation completed immediately
-or through a durable operation.
+## Python
 
-## 4. Replace stale browser objects
+Install the SDK and Playwright:
 
-A successful rewind replaces the browser process and closes the old CDP transport. Reconnect
-with the returned endpoint and rediscover contexts, pages, frames, elements, workers, requests,
-and remote objects. Do not retain Playwright or Puppeteer handles across rewind.
+```bash
+python -m pip install brawsr playwright
+export BRAWSR_API_KEY="brawsr_..."
+```
 
-## 5. Close what you create
+Run the equivalent synchronous Python program:
 
-Close sessions explicitly when your workflow no longer needs them. Forked sessions are peers;
-your application decides which result to keep and closes the rest.
+```python
+from brawsr import BrawsrClient
+from playwright.sync_api import sync_playwright
+
+with BrawsrClient() as brawsr, sync_playwright() as playwright:
+    session = brawsr.create_session()
+
+    try:
+        connection = brawsr.connect_cdp(session)
+        browser = playwright.chromium.connect_over_cdp(
+            connection.endpoint_url,
+            headers=connection.headers,
+        )
+        context = browser.contexts[0]
+        page = context.pages[0] if context.pages else context.new_page()
+
+        page.goto("https://example.com")
+        checkpoint = brawsr.create_checkpoint(
+            session.id,
+            label="example-loaded",
+        )
+
+        # This browser handle becomes stale after rewind.
+        page.goto("https://example.com/?state=discarded")
+        restored = brawsr.rewind(session.id, checkpoint)
+
+        restored_connection = brawsr.connect_cdp(restored)
+        restored_browser = playwright.chromium.connect_over_cdp(
+            restored_connection.endpoint_url,
+            headers=restored_connection.headers,
+        )
+        restored_page = restored_browser.contexts[0].pages[0]
+
+        print(restored_page.title(), restored_page.url)
+    finally:
+        brawsr.close_session(session.id)
+```
+
+## Why reconnect after rewind?
+
+A successful rewind replaces the browser process and closes the old CDP
+transport. Reconnect with the returned endpoint and rediscover contexts, pages,
+frames, elements, workers, requests, and remote objects. Do not retain
+Playwright or Puppeteer handles across rewind.
+
+The SDK returns the terminal mutation result whether the API completed the work
+immediately or through a durable operation. Close every session your workflow
+creates, including fork children you decide not to keep.
 
 <Cards>
+  <Card title="Install" href="/docs/get-started/installation" />
   <Card title="API and SDK guide" href="/docs/guides/api-and-sdk" />
   <Card title="Recovery limitations" href="/docs/guides/recovery-limitations" />
   <Card title="API reference" href="/docs/api-reference" />

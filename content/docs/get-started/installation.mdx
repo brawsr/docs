@@ -1,0 +1,105 @@
+---
+title: Install
+description: Install the TypeScript SDK, Python SDK, or local MCP server.
+---
+
+Choose the client that fits your application. All three connect to
+`https://api.brawsr.io` by default and authenticate with a project API key.
+
+<Callout type="warn" title="Keep API keys on the server">
+  Set `BRAWSR_API_KEY` only in a trusted server, local development environment,
+  or MCP client configuration. Never include it in browser code or a public
+  bundle.
+</Callout>
+
+## TypeScript SDK
+
+The [`@brawsr/sdk`](https://www.npmjs.com/package/@brawsr/sdk) package requires
+Node.js 22 or newer. Install Playwright Core when you want to attach to a
+session over CDP:
+
+```bash
+npm install @brawsr/sdk playwright-core
+```
+
+The current `0.1.0` SDK reads `BRAWSR_API_KEY` when you create a client without
+arguments:
+
+```bash
+export BRAWSR_API_KEY="brawsr_..."
+```
+
+```ts
+import { BrawsrClient } from '@brawsr/sdk';
+
+const brawsr = new BrawsrClient();
+```
+
+## Python SDK
+
+The [`brawsr`](https://pypi.org/project/brawsr/) package requires Python 3.11 or
+newer. Install Playwright when you want to attach to a session over CDP:
+
+```bash
+python -m pip install brawsr playwright
+```
+
+The current `0.1.1` SDK reads the same environment variable:
+
+```bash
+export BRAWSR_API_KEY="brawsr_..."
+```
+
+```python
+from brawsr import BrawsrClient
+
+brawsr = BrawsrClient()
+```
+
+## MCP server
+
+The [`@brawsr/mcp-server`](https://www.npmjs.com/package/@brawsr/mcp-server)
+package requires Node.js 22 or newer. Your MCP client starts it with `npx`, so
+there is no global install and no separate SDK dependency:
+
+```bash
+npx -y @brawsr/mcp-server@0.1.0
+```
+
+Use the copy-ready client configurations in the [MCP server guide](/docs/guides/mcp).
+The package is also listed in the
+[official MCP Registry](https://registry.modelcontextprotocol.io/?search=io.github.brawsr%2Fbrawsr).
+
+## Endpoint overrides
+
+Both SDKs default to `https://api.brawsr.io`. Override it explicitly only when
+you are connecting to another brawsr deployment:
+
+```ts
+const brawsr = new BrawsrClient({
+  apiKey: process.env.BRAWSR_API_KEY!,
+  baseUrl: 'http://localhost:8080',
+});
+```
+
+```python
+import os
+
+from brawsr import BrawsrClient
+
+brawsr = BrawsrClient(
+    api_key=os.environ["BRAWSR_API_KEY"],
+    base_url="http://localhost:8080",
+)
+```
+
+The TypeScript SDK accepts the constructor option only; it does not read
+`BRAWSR_BASE_URL`. The Python SDK also requires the explicit `base_url`
+argument. The local MCP server supports `BRAWSR_BASE_URL` because MCP clients
+configure spawned processes through environment variables.
+
+<Cards>
+  <Card title="Quickstart" description="Run a complete checkpoint and rewind flow." href="/docs/get-started/quickstart" />
+  <Card title="API and SDK guide" description="Understand mutations, recovery, and errors." href="/docs/guides/api-and-sdk" />
+  <Card title="MCP server" description="Configure brawsr in your coding agent." href="/docs/guides/mcp" />
+</Cards>

@@ -9,6 +9,18 @@ reconnection. The complete wire schema is
 
 The production API base URL is `https://api.brawsr.io`.
 
+## Packages
+
+- TypeScript: [`@brawsr/sdk`](https://www.npmjs.com/package/@brawsr/sdk),
+  for Node.js 22 and newer;
+- Python: [`brawsr`](https://pypi.org/project/brawsr/), for Python 3.11 and
+  newer.
+
+Both SDKs default to `https://api.brawsr.io`. Use an explicit `baseUrl` in
+TypeScript or `base_url` in Python only when connecting to another deployment.
+See [Install](/docs/get-started/installation) for package commands and endpoint
+configuration.
+
 ## Authentication
 
 Send the project API key on every REST and WebSocket request:
@@ -32,6 +44,14 @@ import { chromium } from "playwright-core";
 
 const brawsr = new BrawsrClient(); // reads BRAWSR_API_KEY
 const session = await brawsr.createSession();
+const connection = brawsr.connectCDP(session);
+const browser = await chromium.connectOverCDP(connection.endpointUrl, {
+  headers: connection.headers,
+});
+const context = browser.contexts()[0];
+const page = context.pages()[0] ?? await context.newPage();
+
+await page.goto("https://example.com");
 const checkpoint = await brawsr.createCheckpoint(session.id, {
   label: "before-submit",
 });
@@ -39,12 +59,11 @@ const checkpoint = await brawsr.createCheckpoint(session.id, {
 // Mutate or attempt an action.
 const restored = await brawsr.rewind(session.id, checkpoint);
 
-const connection = brawsr.connectCDP(restored);
-const browser = await chromium.connectOverCDP(connection.endpointUrl, {
-  headers: connection.headers,
+const restoredConnection = brawsr.connectCDP(restored);
+const restoredBrowser = await chromium.connectOverCDP(restoredConnection.endpointUrl, {
+  headers: restoredConnection.headers,
 });
-const context = browser.contexts()[0];
-const pages = context.pages();
+const restoredPages = restoredBrowser.contexts()[0].pages();
 ```
 
 ```python
@@ -53,18 +72,26 @@ from playwright.sync_api import sync_playwright
 
 with BrawsrClient() as brawsr, sync_playwright() as playwright:
     session = brawsr.create_session()
-    checkpoint = brawsr.create_checkpoint(session.id, label="before-submit")
-
-    # Mutate or attempt an action.
-    restored = brawsr.rewind(session.id, checkpoint)
-
-    connection = brawsr.connect_cdp(restored)
+    connection = brawsr.connect_cdp(session)
     browser = playwright.chromium.connect_over_cdp(
         connection.endpoint_url,
         headers=connection.headers,
     )
     context = browser.contexts[0]
-    pages = context.pages
+    page = context.pages[0] if context.pages else context.new_page()
+
+    page.goto("https://example.com")
+    checkpoint = brawsr.create_checkpoint(session.id, label="before-submit")
+
+    # Mutate or attempt an action.
+    restored = brawsr.rewind(session.id, checkpoint)
+
+    restored_connection = brawsr.connect_cdp(restored)
+    restored_browser = playwright.chromium.connect_over_cdp(
+        restored_connection.endpoint_url,
+        headers=restored_connection.headers,
+    )
+    restored_pages = restored_browser.contexts[0].pages
 ```
 
 The old CDP socket and every `Browser`, `Page`, target, element, execution
