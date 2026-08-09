@@ -1,0 +1,10 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Deterministic SHA-256 values in historical contract lock manifests"
+regexTarget = "line"
+regexes = [
+  '''^\s*"openapi_sha256": "[a-f0-9]{64}",?\s*$''',
+  '''^\s*"API\.md": "[a-f0-9]{64}",?\s*$''',
+]
