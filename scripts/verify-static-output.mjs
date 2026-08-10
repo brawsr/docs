@@ -85,6 +85,27 @@ invariant(
   'Static search index was not exported',
 );
 
+const clientJavaScript = (
+  await Promise.all(
+    outputFiles
+      .filter((file) => file.endsWith('.js'))
+      .map((file) => readFile(file, 'utf8')),
+  )
+).join('\n');
+invariant(clientJavaScript.includes('docs_search_used'), 'Client output is missing docs search analytics');
+invariant(clientJavaScript.includes('docs_copy_code'), 'Client output is missing code-copy analytics');
+invariant(clientJavaScript.includes('cookieless_mode'), 'Client output is missing cookieless analytics');
+invariant(
+  clientJavaScript.includes('disable_session_recording'),
+  'Client output does not explicitly disable analytics session recording',
+);
+
+if (process.env.CI) {
+  const projectToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
+  invariant(projectToken?.startsWith('phc_'), 'CI is missing the public PostHog project token');
+  invariant(clientJavaScript.includes(projectToken), 'Static output is missing the configured PostHog token');
+}
+
 const htmlFiles = outputFiles.filter((file) => file.endsWith('.html'));
 const broken = [];
 
@@ -135,8 +156,25 @@ invariant(
     speculativeExample.includes('external-link-marker') &&
     speculativeExample.includes('target="_blank"') &&
     speculativeExample.includes('rel="noopener noreferrer"') &&
+    speculativeExample.includes('data-analytics-event="docs_open_external_link"') &&
     speculativeExample.includes('opens in a new tab'),
   'External documentation links are missing their marker or safe new-tab behavior',
+);
+
+invariant(
+  home.includes('data-analytics-event="docs_open_quickstart"') &&
+    home.includes('data-analytics-event="docs_open_api_reference"') &&
+    home.includes('data-analytics-event="docs_open_path"'),
+  'Documentation homepage is missing explicit navigation analytics',
+);
+
+const installation = await readFile(
+  path.join(outputRoot, 'docs/get-started/installation/index.html'),
+  'utf8',
+);
+invariant(
+  installation.includes('data-analytics-container="code-block"'),
+  'Documentation code blocks are missing their analytics boundary',
 );
 
 const faviconSource = await readFile(path.join(repoRoot, 'src/app/icon.svg'), 'utf8');

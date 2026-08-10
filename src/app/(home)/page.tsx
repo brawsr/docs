@@ -39,11 +39,23 @@ export default function HomePage() {
             the state that worked.
           </p>
           <div className="hero-actions">
-            <Link className="hero-button hero-button-primary" href="/docs/get-started/quickstart">
+            <Link
+              className="hero-button hero-button-primary"
+              data-analytics-event="docs_open_quickstart"
+              data-analytics-placement="hero"
+              data-analytics-target="quickstart"
+              href="/docs/get-started/quickstart"
+            >
               Run the quickstart
               <span aria-hidden="true">↗</span>
             </Link>
-            <Link className="hero-button" href="/docs/api-reference">
+            <Link
+              className="hero-button"
+              data-analytics-event="docs_open_api_reference"
+              data-analytics-placement="hero"
+              data-analytics-target="api_reference"
+              href="/docs/api-reference"
+            >
               Read the API
             </Link>
           </div>
@@ -59,7 +71,14 @@ export default function HomePage() {
         </header>
         <nav className="docs-path-list" aria-label="Documentation paths">
           {paths.map((path) => (
-            <Link className="docs-path" href={path.href} key={path.href}>
+            <Link
+              className="docs-path"
+              data-analytics-event="docs_open_path"
+              data-analytics-placement="documentation_map"
+              data-analytics-target={path.label.toLowerCase().replaceAll(' ', '_')}
+              href={path.href}
+              key={path.href}
+            >
               <span className="docs-path-label">{path.label}</span>
               <h3>{path.title}</h3>
               <p>{path.description}</p>
