@@ -32,6 +32,14 @@ function cleanUrl(value: string) {
   }
 }
 
+function sanitizeHeatmapData(value: unknown) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value;
+
+  return Object.fromEntries(
+    Object.entries(value).map(([url, points]) => [cleanUrl(url), points]),
+  );
+}
+
 function sanitizeCapture(capture: CaptureResult | null): CaptureResult | null {
   if (!capture) return null;
 
@@ -48,6 +56,10 @@ function sanitizeCapture(capture: CaptureResult | null): CaptureResult | null {
     ) {
       properties[key] = cleanUrl(value);
     }
+  }
+
+  if ('$heatmap_data' in properties) {
+    properties.$heatmap_data = sanitizeHeatmapData(properties.$heatmap_data);
   }
 
   return { ...capture, properties };

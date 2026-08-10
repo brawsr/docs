@@ -95,6 +95,7 @@ const clientJavaScript = (
 invariant(clientJavaScript.includes('docs_search_used'), 'Client output is missing docs search analytics');
 invariant(clientJavaScript.includes('docs_copy_code'), 'Client output is missing code-copy analytics');
 invariant(clientJavaScript.includes('cookieless_mode'), 'Client output is missing cookieless analytics');
+invariant(clientJavaScript.includes('$heatmap_data'), 'Client output is missing nested heatmap URL sanitization');
 invariant(
   clientJavaScript.includes('disable_session_recording'),
   'Client output does not explicitly disable analytics session recording',
