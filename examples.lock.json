@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "repository": "brawsr/examples",
-  "commit": "9e19729d4ef064fb4907d000217747723ed9dde5",
+  "commit": "91d9107832aa32288fa0a6a392cd134470594a61",
   "files": [
     {
       "path": "typescript/playwright-rewind.ts",
