@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "brawsr API",
-    "version": "0.6.1",
+    "version": "0.7.0",
     "description": "Authenticated browser sessions with explicit checkpoint, rewind, and fork operations plus bounded session workspace reads. Rewind restores browser/client state; it does not undo effects already committed to remote servers."
   },
   "servers": [
@@ -928,10 +928,6 @@
             "$ref": "#/components/schemas/SessionDisplayLabel"
           },
           "ttl_seconds": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "mem_mib": {
             "type": "integer",
             "minimum": 1
           }

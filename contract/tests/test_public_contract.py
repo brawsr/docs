@@ -91,6 +91,11 @@ class PublicContractTest(unittest.TestCase):
         self.assertIn("attachable", session["required"])
         self.assertIn("closed/expired", session["properties"]["cdp_url"]["description"])
 
+    def test_session_memory_is_server_managed(self) -> None:
+        request = self.contract()["components"]["schemas"]["CreateSessionRequest"]
+        self.assertNotIn("mem_mib", request["properties"])
+        self.assertFalse(request["additionalProperties"])
+
     def test_capture_history_and_rewindable_ancestry_are_distinct(self) -> None:
         paths = self.contract()["paths"]
         captures = paths["/v1/sessions/{session_id}/checkpoints"]["get"]

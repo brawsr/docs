@@ -22,7 +22,7 @@ session over CDP:
 npm install @brawsr/sdk playwright-core
 ```
 
-The current `0.1.0` SDK reads `BRAWSR_API_KEY` when you create a client without
+The current `0.2.0` SDK reads `BRAWSR_API_KEY` when you create a client without
 arguments:
 
 ```bash
@@ -44,7 +44,7 @@ newer. Install Playwright when you want to attach to a session over CDP:
 python -m pip install brawsr playwright
 ```
 
-The current `0.1.1` SDK reads the same environment variable:
+The current `0.2.0` SDK reads the same environment variable:
 
 ```bash
 export BRAWSR_API_KEY="brawsr_..."
@@ -63,7 +63,7 @@ package requires Node.js 22 or newer. Your MCP client starts it with `npx`, so
 there is no global install and no separate SDK dependency:
 
 ```bash
-npx -y @brawsr/mcp-server@0.1.0
+npx -y @brawsr/mcp-server@0.2.0
 ```
 
 Use the copy-ready client configurations in the [MCP server guide](/docs/guides/mcp).

@@ -141,7 +141,7 @@ const llms = await readFile(path.join(outputRoot, 'llms-full.txt'), 'utf8');
 invariant(llms.includes('Recovery limitations'), 'llms-full.txt is missing release-bound guides');
 invariant(llms.includes('@brawsr/sdk'), 'llms-full.txt is missing the TypeScript SDK package');
 invariant(llms.includes('python -m pip install brawsr'), 'llms-full.txt is missing Python installation');
-invariant(llms.includes('@brawsr/mcp-server@0.1.0'), 'llms-full.txt is missing MCP installation');
+invariant(llms.includes('@brawsr/mcp-server@0.2.0'), 'llms-full.txt is missing MCP installation');
 invariant(
   llms.includes('prepared-for-route-comparison'),
   'llms-full.txt is missing the speculative branching source',

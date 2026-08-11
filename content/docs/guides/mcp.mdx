@@ -4,7 +4,7 @@ description: Install and configure the authenticated local stdio MCP integration
 ---
 
 The brawsr MCP server lets coding agents create browser sessions, checkpoints,
-rewinds, and forks through high-level tools. Version `0.1.0` runs as a local
+rewinds, and forks through high-level tools. Version `0.2.0` runs as a local
 stdio process and requires Node.js 22 or newer.
 
 The package is available on
@@ -25,7 +25,7 @@ Add brawsr to Codex from the command line:
 ```bash
 codex mcp add brawsr \
   --env BRAWSR_API_KEY=brawsr_... \
-  -- npx -y @brawsr/mcp-server@0.1.0
+  -- npx -y @brawsr/mcp-server@0.2.0
 ```
 
 Codex writes MCP settings to `~/.codex/config.toml`. You can also configure the
@@ -34,7 +34,7 @@ server directly:
 ```toml
 [mcp_servers.brawsr]
 command = "npx"
-args = ["-y", "@brawsr/mcp-server@0.1.0"]
+args = ["-y", "@brawsr/mcp-server@0.2.0"]
 
 [mcp_servers.brawsr.env]
 BRAWSR_API_KEY = "brawsr_..."
@@ -51,7 +51,7 @@ claude mcp add \
   --env BRAWSR_API_KEY=brawsr_... \
   --transport stdio \
   --scope user \
-  brawsr -- npx -y @brawsr/mcp-server@0.1.0
+  brawsr -- npx -y @brawsr/mcp-server@0.2.0
 ```
 
 Run `claude mcp list` to check the connection, or `/mcp` from an interactive
@@ -67,7 +67,7 @@ Create `~/.cursor/mcp.json` for a personal configuration, or
   "mcpServers": {
     "brawsr": {
       "command": "npx",
-      "args": ["-y", "@brawsr/mcp-server@0.1.0"],
+      "args": ["-y", "@brawsr/mcp-server@0.2.0"],
       "env": {
         "BRAWSR_API_KEY": "brawsr_..."
       }
@@ -99,7 +99,7 @@ stored in the file:
     "brawsr": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "@brawsr/mcp-server@0.1.0"],
+      "args": ["-y", "@brawsr/mcp-server@0.2.0"],
       "env": {
         "BRAWSR_API_KEY": "${input:brawsr-api-key}"
       }
