@@ -8,6 +8,13 @@ safe point between actions, make a later change, rewind, and reconnect to the
 restored browser. Keep `BRAWSR_API_KEY` in your server-side environment; never
 embed it in browser code or a public bundle.
 
+<Callout type="info" title="Free alpha limits">
+  The default allowance is three total session units—one source plus at most
+  two fork children—with a 10-minute standard session maximum and three runtime
+  hours per month. Need help choosing a safe point? [Email the
+  founder](mailto:support@brawsr.io).
+</Callout>
+
 ## Run an exact example
 
 The public examples below explain the workflow in small steps and show only the
@@ -38,6 +45,15 @@ important code. Each page links to its complete runnable program in
 5. The restored page contains the checkpointed value.
 6. The program waits for terminal rewind completion before close, because close
    is another lifecycle mutation on the same session.
+
+<Callout type="warn" title="Know the recovery boundary">
+  Checkpoint only at an application-chosen safe point between actions. Rewind
+  restores browser and client state; it cannot reverse effects already accepted
+  by a remote service. Because rewind replaces the browser, live WebSocket,
+  SSE, and WebRTC connections and stale handles are not preserved: reconnect
+  and rediscover targets. See [Recovery
+  limitations](/docs/guides/recovery-limitations) for the complete contract.
+</Callout>
 
 <Callout type="info" title="Usable before terminal">
   A rewind result can be CDP-usable while bounded post-restore work is still
